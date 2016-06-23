@@ -15,11 +15,15 @@ function AreYouSure {
          }
 }
 
+
 #MainMenu function. Contains the screen output for the menu and waits for and handles user input.  
 function MainMenu {
-    $ServerInstance = "SQLSRV01"
-    $Database       = "SQLMonitor"
-    $ProfileName    = "Monitor"
+    # Import settings from config file
+    [xml]$ConfigFile = Get-Content "$($CurrentPath)\Settings.xml"
+
+    $ServerInstance = $ConfigFile.Settings.DatabaseConnection.ServerInstance
+    $Database = $ConfigFile.Settings.DatabaseConnection.Database
+    $ProfileName = $ConfigFile.Settings.DatabaseConnection.ProfileName
 
     Clear-Host
     Write-Host "---------------------------------------------------------"
