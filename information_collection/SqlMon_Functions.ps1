@@ -2,6 +2,7 @@
 $CurrentPath = Get-Location
 . "$($CurrentPath)\Community_Functions.ps1"
 
+
 Function Get-ServerInfo() {
     [CmdletBinding()]  
     param(  
@@ -117,7 +118,21 @@ Function Get-ServerInfo() {
                 }
                 # script has been executed against the current server in the past N minutes
                 else {
-                    "{0} : Script {1} has already been run within the pre-defined timeframes." -f $(Get-Date -Format "HH:mm:ss"), $scriptname
+                    $ts =  [timespan]::fromminutes($minuteselapsed)
+                    $age = New-Object DateTime -ArgumentList $ts.Ticks
+
+                    $msg = "" 
+
+                    if ($($age.Year-1) -gt 0) { $msg += " " + $($age.Year-1).ToString() + " Years" }
+                    if ($($age.Month-1) -gt 0) { $msg += " " + $($age.Month-1).ToString() + " Months" }
+                    if ($($age.Day-1) -gt 0) { $msg += " " + $($age.Day-1).ToString() + " days" }
+                    if ($($age.Hour) -gt 0) { $msg += " " + $($age.Hour).ToString() + " hours" }
+                    if ($($age.Minute) -gt 0) { $msg += " " + $($age.Minute).ToString() + " minutes" }
+                    #if ($($age.second) -gt 0) { $msg += " " + $($age.second).ToString() + " seconds" }
+
+                    $msg += " ago"
+
+                    "{0} : Script {1} has already been run$msg." -f $(Get-Date -Format "HH:mm:ss"), $scriptname
                 }
             }
             # script file does not exist
