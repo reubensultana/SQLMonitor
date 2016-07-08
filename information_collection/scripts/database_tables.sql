@@ -1,7 +1,7 @@
 -- Category: Databases - Database Objects
 SET NOCOUNT ON;
 
-DECLARE @TableSpaceUsed TABLE (
+CREATE TABLE #TableSpaceUsed (
     [DatabaseName] [nvarchar](128) NOT NULL,
     [TableName] [nvarchar](128) NOT NULL, 
     [RowCount] [bigint] NOT NULL, 
@@ -11,7 +11,7 @@ DECLARE @TableSpaceUsed TABLE (
     [UnusedSpaceKB] [bigint] NOT NULL
 );
 
-DECLARE @TableSpaceUsed_temp TABLE (
+CREATE TABLE #TableSpaceUsed_temp (
     [TableName] [nvarchar](128) NOT NULL, 
     [RowCount] [bigint] NOT NULL, 
     [ReservedKB] [bigint] NOT NULL, 
@@ -39,7 +39,6 @@ WHILE (@@FETCH_STATUS = 0)
 BEGIN
     SET @SQLCmd = N'
 USE [' + @database_name + N'];
-INSERT INTO [tempdb].[dbo].[TableSpaceUsed_temp]
 SELECT 
     SCHEMA_NAME(sobj.schema_id) + ''.'' + sobj.name AS [TableName], 
     SUM(sptn.Rows) AS [RowCount],
@@ -62,17 +61,17 @@ AND sptn.index_id < 2 -- 0:Heap, 1:Clustered
 GROUP BY sobj.schema_id, sobj.name
 ORDER BY [TableName];
 ';
-	INSERT INTO @TableSpaceUsed_temp
+	INSERT INTO #TableSpaceUsed_temp
     EXEC sp_executesql @SQLCmd;
 
-    INSERT INTO @TableSpaceUsed
+    INSERT INTO #TableSpaceUsed
         SELECT
             @database_name, t1.[TableName],
             t1.[RowCount], t1.[ReservedKB], t1.[DataSizeKB], t1.[IndexSizeKB], t1.[UnusedSpaceKB]
-        FROM @TableSpaceUsed_temp t1 
+        FROM #TableSpaceUsed_temp t1 
         ORDER BY t1.[TableName];
 
-    DELETE FROM @TableSpaceUsed_temp;
+    DELETE FROM #TableSpaceUsed_temp;
 
     FETCH NEXT FROM d1 INTO @database_name;
 END
@@ -90,5 +89,5 @@ SELECT
     [DataSizeKB],
     [IndexSizeKB],
     [UnusedSpaceKB]
-FROM @TableSpaceUsed
+FROM #TableSpaceUsed
 ORDER BY [DatabaseName], [TableName];
