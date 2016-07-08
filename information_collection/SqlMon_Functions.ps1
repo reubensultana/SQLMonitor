@@ -1,4 +1,4 @@
-# Global params
+﻿# Global params
 $CurrentPath = Get-Location
 . "$($CurrentPath)\Community_Functions.ps1"
 
@@ -28,11 +28,11 @@ Function Get-ServerInfo() {
 
     # get profile (incl, script names and scripts)
     $sql = "EXEC dbo.uspGetProfile '{0}', '{1}'" -f $ProfileName, $ProfileType
-    $scripts = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql
+    $scripts = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
 
     # get list of servers
     $sql = "SELECT ServerName, SqlTcpPort FROM [dbo].[MonitoredServers] WHERE [RecordStatus] = 'A' ORDER BY ServerOrder ASC, ServerName ASC;"
-    $ServerInstances = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql
+    $ServerInstances = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
 
     # clear
     $sql = $null
@@ -41,15 +41,15 @@ Function Get-ServerInfo() {
         $ServerName = $Server.ServerName
         $TcpPort = $Server.SqlTcpPort
         $InstanceName = "$ServerName,$TcpPort"
-        "{0} : Processing server: {1}" -f $(Get-Date -Format "HH:mm:ss"), $ServerName
+        "{0} : Processing server: {1}" -f $(Get-Date -Format "HH:mm:ss"), $InstanceName
 
         # test connection
         $TestConnection = Test-Port -hostname $ServerName -port $TcpPort
         if ($TestConnection -eq $true) {
             # test authentication
             try {
-                $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query "SELECT CURRENT_TIMESTAMP AS [ServerDateTime];"
-                $ServerDateTime = $result.ServerDateTime
+                $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query "SELECT @@ServerName AS [ServerName];" -QueryTimeout 30
+                $ServerName = $result.ServerName
                 $TestAuthentication = $true
             }
             catch { 
@@ -61,6 +61,7 @@ Function Get-ServerInfo() {
             Write-Warning "Network access to $ServerName on port $TcpPort not available"
         }
 
+        # check if the connection test was successful
         if (($TestConnection -eq $true) -and ($TestAuthentication -eq $true)) {
             Foreach ($script in $scripts) {
                 $scriptname = $scriptroot + $script.ScriptName + ".sql"
@@ -75,7 +76,7 @@ Function Get-ServerInfo() {
                     # this will avoid that say, a script that should run Monthly is run multiple times during the month
                     # the COALESCE function will either return the value of the most recent RecordCreated column for that server OR the value 600,000 (which is more than 1 year in minutes)
                     $sql = "SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), CURRENT_TIMESTAMP), 600000) AS [MinutesElapsed] FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)';"
-                    $result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql
+                    $result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
                     $minuteselapsed = $result.MinutesElapsed
                     $result = $null
 
@@ -89,16 +90,16 @@ Function Get-ServerInfo() {
                             # replace the parameter with the server name
                             $preexecutescript = $preexecutescript -f $ServerName
                             # execute the query against the monitoring database
-                            $preexecuteresult = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $preexecutescript
+                            $preexecuteresult = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $preexecutescript -QueryTimeout 30
                         }
 
                         "{0} : Running script:    {1}" -f $(Get-Date -Format "HH:mm:ss"), $scriptname
                         # run the script retrieved from the database, otherwise load it from the file
-                        if ([string]::IsNullOrEmpty($runscript)) {
+                        if ([string]::IsNullOrEmpty($executescript)) {
                             $sql = Get-Content -Path $scriptname -Raw
                         }
                         else {
-                            $sql = $runscript
+                            $sql = $executescript
                         }
                         # replace the script parameter with the result obtained
                         # NOTE: if NOT IsNullOrEmpty...
@@ -107,15 +108,16 @@ Function Get-ServerInfo() {
                         }
                         # run and store the output in a data table variable
                         try {
-                            $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $sql.ToString()
+                            $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $sql.ToString() -QueryTimeout 240
+                            $ErrorMessage = $null
                         }
                         catch {
                             $ErrorMessage = $_.Exception.Message
                             Write-Warning $ErrorMessage
                         }
-                        
-                        # check if the connection test was successful
-                        if (![string]::IsNullOrEmpty($runscript)) {
+
+                        # check if the data retrieval was successful
+                        if ([string]::IsNullOrEmpty($ErrorMessage)) {
                             $dt = $result | Out-DataTable
                             $dtRowCount = $dt.Rows.Count
 
@@ -131,7 +133,7 @@ Function Get-ServerInfo() {
 
                             # update the status for older data
                             $sql = "UPDATE $($ProfileName).$($tablename) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
-                            Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql
+                            Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
 
                             # write data extraced from remote server to central table
                             if ($dtRowCount -gt 0) {
@@ -139,7 +141,7 @@ Function Get-ServerInfo() {
                             }
                         }
                         # clean up
-                        $runscript = $null
+                        $ErrorMessage = $null
                         $executescript = $null
                         $dt = $null
                         $dtRowCount = 0
@@ -174,7 +176,7 @@ Function Get-ServerInfo() {
                 $intervalminutes = $null
             }
         }
-        "{0} : Completed server:  {1}" -f $(Get-Date -Format "HH:mm:ss"), $ServerName
+        "{0} : Completed server:  {1}" -f $(Get-Date -Format "HH:mm:ss"), $InstanceName
         "{0} : ------------------------------ " -f $(Get-Date -Format "HH:mm:ss")
         $ServerName = $null
         $InstanceName = $null
@@ -225,3 +227,4 @@ function Test-Port($hostname, $port) {
         Return $False
     }
 }
+

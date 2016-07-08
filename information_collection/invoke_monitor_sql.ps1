@@ -117,3 +117,72 @@ if (($ServerName -ne '') -and ($DatabaseName -ne '') -and ($MonitorProfile -ne '
 }
 # otherwise display the menu
 else { MainMenu }
+
+
+# SAMPLE 1: dynamic menu, based on an array
+<#
+Clear-Host
+$array1 = @(
+    ("1","First"),
+    ("2","Second"),
+    ("3","Third"),
+    ("4","Fourth"),
+    ("5","Fifth"),
+    ("6","Sixth")
+    )
+$list = 0
+Write-Host "0. Exit" 
+foreach ($arr in $array1) {
+    $list += 1
+    Write-Host $list"." $arr[1]
+}
+$choice1 = Read-Host "Choose and option 1-$list"
+if ($choice1 -eq 0) {Exit}
+else {
+    $selection = $array1[$choice1][1]
+    Write-Host "Option $selection was chosen"
+}
+#>
+
+# SAMPLE 2: Menu and Sub-Menu
+<#
+Function Main-Menu {
+    Clear-Host
+    Write-Host "My Main Menu" -ForegroundColor Green
+    Write-Host ""
+    "[1] Do something"
+    "[2] Do another thing"
+    "[3] Go to the Sub-Menu"
+    "[4] Exit"
+    ""
+    $selection = Read-Host "Please select an option from above"
+    Switch ($selection) {
+        1 {"Do something";      Pause; Main-Menu}
+        2 {"Do another thing";  Pause; Main-Menu}
+        3 {Sub-Menu}
+        4 {break}
+        default {Write-Warning "Invalid choice!"; Pause}
+    }
+}
+
+Function Sub-Menu {
+    Clear-Host
+    Write-Host "My Sub-Menu" -ForegroundColor Green
+    Write-Host ""
+    "[1] Do some stuff"
+    "[2] Do some other stuff"
+    "[3] Go back to the Main Menu"
+    "[4] Exit"
+    ""
+    $selection = Read-Host "Please select an option from above"
+    Switch ($selection) {
+        1 {"Do some stuff";        Pause; Sub-Menu}
+        2 {"Do some other stuff";  Pause; Sub-Menu}
+        3 {Main-Menu}
+        4 {break}
+        default {Write-Warning "Invalid choice!"; Pause}
+    }
+}
+
+Main-Menu
+#>
