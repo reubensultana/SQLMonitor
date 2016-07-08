@@ -12,8 +12,8 @@ CREATE TABLE [Monitor].[ServerTriggers](
 	[ServerName] [nvarchar](128) NOT NULL,
     [ObjectName] [nvarchar](128) NOT NULL,
     [ObjectType] [nvarchar](60) NOT NULL,
-    [CreateDate] [datetime2](0) NOT NULL,
-    [ModifyDate] [datetime2](0) NOT NULL,
+    [CreateDate] [datetime] NOT NULL,
+    [ModifyDate] [datetime] NOT NULL,
     [IsDisabled] [bit] NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,         -- record status - used to determine if the record is active or not
     [RecordCreated] [datetime2] (0) NOT NULL    -- audit timestamp storing the date and time the record was created (is additional detail necessary?)

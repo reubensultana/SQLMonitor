@@ -12,7 +12,7 @@ CREATE TABLE [Monitor].[ServerInfo](
 	[ServerName] [nvarchar](128) NOT NULL,
 	[ProductVersion] [nvarchar](128) NOT NULL,
 	[ProductLevel] [nvarchar](128) NOT NULL,
-	[ResourceLastUpdateDateTime] [datetime2](0) NOT NULL,
+	[ResourceLastUpdateDateTime] [datetime] NOT NULL,
 	[ResourceVersion] [nvarchar](128) NOT NULL,
 	[ServerAuthentication] [varchar](22) NOT NULL,
 	[Edition] [nvarchar](128) NOT NULL,

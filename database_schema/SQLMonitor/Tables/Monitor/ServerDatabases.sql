@@ -12,7 +12,7 @@ CREATE TABLE [Monitor].[ServerDatabases](
 	[ServerName] [nvarchar](128) NOT NULL,
     [DatabaseName] [nvarchar](128) NOT NULL,
     [DatabaseOwner] [nvarchar](128) NOT NULL,
-    [CreateDate] [datetime2](0) NOT NULL,
+    [CreateDate] [datetime] NOT NULL,
     [CompatibilityLevel] [tinyint] NOT NULL,
     [CollationName] [nvarchar](128) NOT NULL,
     [UserAccess] [nvarchar](60) NOT NULL,
