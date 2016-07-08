@@ -3,7 +3,7 @@ SET NOCOUNT ON;
 
 SELECT 
     [ServerName], [LoginName], [Type], [CreateDate], [ModifyDate], 
-    CONVERT(datetime2(0), LOGINPROPERTY([LoginName], 'PasswordLastSetTime')) AS [PasswordLastSet],
+    CONVERT(datetime, LOGINPROPERTY([LoginName], 'PasswordLastSetTime')) AS [PasswordLastSet],
     [DefaultDatabase], [DefaultLanguage], [IsDisabled], [IsPolicyChecked], [IsExpirationChecked], 
     SUM([sysadmin]) AS [sysadmin], SUM([securityadmin]) AS [securityadmin], SUM([serveradmin]) AS [serveradmin], SUM([setupadmin]) AS [setupadmin], 
     SUM([processadmin]) AS [processadmin], SUM([diskadmin]) AS [diskadmin], SUM([dbcreator]) AS [dbcreator], SUM([bulkadmin]) AS [bulkadmin],
@@ -14,8 +14,8 @@ FROM (
         sp.[sid] AS [sid],
         sp.[name] AS [LoginName],
         sp.[type_desc] AS [Type],
-        CONVERT(datetime2(0), sp.[create_date]) AS [CreateDate],
-        CONVERT(datetime2(0), sp.[modify_date]) AS [ModifyDate],
+        CONVERT(datetime, sp.[create_date]) AS [CreateDate],
+        CONVERT(datetime, sp.[modify_date]) AS [ModifyDate],
         sp.[default_database_name] AS [DefaultDatabase],
         sp.[default_language_name] AS [DefaultLanguage],
         sp.[is_disabled] AS [IsDisabled],

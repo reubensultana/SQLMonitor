@@ -1,35 +1,29 @@
 -- Category: Databases - Database Objects
 SET NOCOUNT ON;
 
--- create temp tables
-IF EXISTS (SELECT * FROM tempdb.dbo.sysobjects WHERE id = OBJECT_ID(N'[tempdb].[dbo].[temp_Table]')) 
-    DROP TABLE [tempdb].[dbo].[TableSpaceUsed_temp];
-
-IF EXISTS (SELECT * FROM tempdb.dbo.sysobjects WHERE id = OBJECT_ID(N'[tempdb].[dbo].[TableSpaceUsed]')) 
-    DROP TABLE [tempdb].[dbo].[TableSpaceUsed];
-
-CREATE TABLE [tempdb].[dbo].[TableSpaceUsed](
+DECLARE @TableSpaceUsed TABLE (
     [DatabaseName] [nvarchar](128) NOT NULL,
     [TableName] [nvarchar](128) NOT NULL, 
     [RowCount] [bigint] NOT NULL, 
     [ReservedKB] [bigint] NOT NULL, 
     [DataSizeKB] [bigint] NOT NULL,
     [IndexSizeKB] [bigint] NOT NULL,
-    [UnusedSpaceKB] [bigint] NOT NULL,
+    [UnusedSpaceKB] [bigint] NOT NULL
 );
 
-CREATE TABLE [tempdb].[dbo].[TableSpaceUsed_temp] (
+DECLARE @TableSpaceUsed_temp TABLE (
     [TableName] [nvarchar](128) NOT NULL, 
     [RowCount] [bigint] NOT NULL, 
     [ReservedKB] [bigint] NOT NULL, 
     [DataSizeKB] [bigint] NOT NULL,
     [IndexSizeKB] [bigint] NOT NULL,
-    [UnusedSpaceKB] [bigint] NOT NULL,
+    [UnusedSpaceKB] [bigint] NOT NULL
 );
 
 -- process info
 DECLARE @database_name nvarchar(128);
-DECLARE @SQLCmd nvarchar(2000) = N'';
+DECLARE @SQLCmd nvarchar(2000);
+SET @SQLCmd = N'';
 
 /* START: for each database */
 DECLARE d1 CURSOR FOR
@@ -68,16 +62,17 @@ AND sptn.index_id < 2 -- 0:Heap, 1:Clustered
 GROUP BY sobj.schema_id, sobj.name
 ORDER BY [TableName];
 ';
+	INSERT INTO @TableSpaceUsed_temp
     EXEC sp_executesql @SQLCmd;
 
-    INSERT INTO [tempdb].[dbo].[TableSpaceUsed]
+    INSERT INTO @TableSpaceUsed
         SELECT
             @database_name, t1.[TableName],
             t1.[RowCount], t1.[ReservedKB], t1.[DataSizeKB], t1.[IndexSizeKB], t1.[UnusedSpaceKB]
-        FROM [tempdb].[dbo].[TableSpaceUsed_temp] t1 
+        FROM @TableSpaceUsed_temp t1 
         ORDER BY t1.[TableName];
 
-    TRUNCATE TABLE [tempdb].[dbo].[TableSpaceUsed_temp];
+    DELETE FROM @TableSpaceUsed_temp;
 
     FETCH NEXT FROM d1 INTO @database_name;
 END
@@ -95,12 +90,5 @@ SELECT
     [DataSizeKB],
     [IndexSizeKB],
     [UnusedSpaceKB]
-FROM [tempdb].[dbo].[TableSpaceUsed]
-ORDER BY [DatabaseName], [TableName]
-
--- drop temp tables
-IF EXISTS (SELECT * FROM tempdb.dbo.sysobjects WHERE id = OBJECT_ID(N'[tempdb].[dbo].[TableSpaceUsed_temp]')) 
-    DROP TABLE [tempdb].[dbo].[TableSpaceUsed_temp];
-
-IF EXISTS (SELECT * FROM tempdb.dbo.sysobjects WHERE id = OBJECT_ID(N'[tempdb].[dbo].[TableSpaceUsed]')) 
-    DROP TABLE [tempdb].[dbo].[TableSpaceUsed];
+FROM @TableSpaceUsed
+ORDER BY [DatabaseName], [TableName];

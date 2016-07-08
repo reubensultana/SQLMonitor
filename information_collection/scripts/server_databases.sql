@@ -5,7 +5,7 @@ SELECT
     CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS ServerName,
     [name] AS [DatabaseName],
     SUSER_SNAME([owner_sid]) AS [DatabaseOwner],
-    CONVERT(datetime2(0), [create_date]) AS [CreateDate],
+    CONVERT(datetime, [create_date]) AS [CreateDate],
     [compatibility_level] AS [CompatibilityLevel],
     COALESCE([collation_name], '') AS [CollationName], -- NULL = Database is not online or AUTO_CLOSE is set to ON and the database is closed
     [user_access_desc] AS [UserAccess],

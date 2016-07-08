@@ -1,10 +1,16 @@
 -- Category: Database Engine Security
 SET NOCOUNT ON;
+SET DATEFORMAT mdy;
 
-DECLARE @ErrorLogNumber int = 0;
-DECLARE @ErrorMsg nvarchar(500) = N'Login failed for user';
-DECLARE @SQLCmd nvarchar(4000) = N'';
-DECLARE @StartDate datetime = CONVERT(datetime, '{0}', 120);
+DECLARE @ErrorLogNumber int;
+DECLARE @ErrorMsg nvarchar(500);
+DECLARE @SQLCmd nvarchar(4000);
+DECLARE @StartDate datetime;
+
+SET @ErrorLogNumber = 0;
+SET @ErrorMsg = N'Login failed for user';
+SET @SQLCmd = N'';
+SET @StartDate = CONVERT(datetime, '{0}', 120);
 
 CREATE TABLE #ErrorLogs (
     [LogNumber] int,
