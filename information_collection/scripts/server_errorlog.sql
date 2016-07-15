@@ -8,7 +8,8 @@ DECLARE @SQLCmd nvarchar(4000);
 DECLARE @StartDate datetime;
 
 SET @ErrorLogNumber = 0;
-SET @ErrorMsg = N'Login failed for user';
+--SET @ErrorMsg = N'Login failed for user';
+SET @ErrorMsg = N'';
 SET @SQLCmd = N'';
 SET @StartDate = CONVERT(datetime, '{0}', 120);
 
@@ -45,12 +46,13 @@ CLOSE L1;
 DEALLOCATE L1;
 
 SELECT 
-    CONVERT(nvarchar(128), @@SERVERNAME) as [ServerName],
+    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) as [ServerName],
     [LogDate], 
     [ProcessInfo], 
     [LogText]
 FROM #ErrorLog
 WHERE [LogDate] > @StartDate
+AND [LogText] IS NOT NULL
 ORDER BY [LogDate] ASC;
 
 DROP TABLE #ErrorLogs;
