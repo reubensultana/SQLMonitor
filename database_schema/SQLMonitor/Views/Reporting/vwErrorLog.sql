@@ -24,6 +24,7 @@ AS (
         ,(CHARINDEX('Reason: ', [LogText], 0)+8) AS [ReasonStartPoint]
         ,((CHARINDEX('[', [LogText], (CHARINDEX('Reason: ', [LogText], 0)+8))-8) - (CHARINDEX('Reason: ', [LogText], 0))) AS [ReasonEndPoint]
     FROM [Monitor].[ServerErrorLog]
+    WHERE [LogText] LIKE N'Login failed for user%'
 )
 SELECT 
     [ServerName]
