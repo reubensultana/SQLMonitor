@@ -12,7 +12,6 @@ CREATE TABLE [dbo].[Profile] (
     [ProfileType] [varchar](50) NOT NULL,   -- defines execution schedule: Manual, Recurrent, Daily, Weekly, Monthly
     [PreExecuteScript] [nvarchar](4000) NOT NULL,   -- optional: script which should be run before every iteration of the main script; used to retrieve single values which can then be used in the main script.
     [ExecuteScript] nvarchar(max) NOT NULL,     -- the actual script which will be executed with each iteration - if empty, the script file will be used instead
---    [IntervalMinutes] int NOT NULL,         -- the number of minutes which have to elapse to execute this script
     [ExecutionOrder] [tinyint] NOT NULL DEFAULT(0),
     [RecordStatus] [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
     [RecordCreated] [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
@@ -28,12 +27,6 @@ WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE
     ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
 GO
 
-/*
--- default constraint on IntervalMinutes = 0
-ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
-	DF_Profile_IntervalMinutes DEFAULT (0) FOR IntervalMinutes
-GO
-*/
 
 -- default constraint on RecordStatus = "A"
 ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
@@ -49,10 +42,23 @@ ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
 	DF_Profile_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
 GO
 
--- Manual, Recurrent, Daily, Weekly, Monthly
+-- default constraint on PreExecuteScript = ""
+ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
+	DF_Profile_PreExecuteScript DEFAULT N'' FOR [PreExecuteScript]
+GO
+
+-- default constraint on ExecuteScript = ""
+ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
+	DF_Profile_ExecuteScript DEFAULT N'' FOR [ExecuteScript]
+GO
+
+
 -- generate initial data set
-INSERT INTO [dbo].[Profile] (ProfileName, ScriptName, ExecutionOrder, ProfileType, PreExecuteScript, ExecuteScript) --, IntervalMinutes)
+INSERT INTO [dbo].[Profile] (
+    ProfileName, ScriptName, ExecutionOrder, ProfileType, PreExecuteScript, ExecuteScript)
 VALUES
+    -- Annual
+    -- Monthly
      ('Monitor', 'server_info',                 1, 'Monthly',   N'', N'')
     ,('Monitor', 'server_logins',               2, 'Monthly',   N'', N'')
     ,('Monitor', 'server_databases',            3, 'Monthly',   N'', N'')
@@ -60,9 +66,18 @@ VALUES
     ,('Monitor', 'server_servers',              5, 'Monthly',   N'', N'')
     ,('Monitor', 'server_triggers',             6, 'Monthly',   N'', N'')
     ,('Monitor', 'server_endpoints',            7, 'Monthly',   N'', N'')
+    ,('Monitor', 'server_agentconfig',          8, 'Monthly',   N'', N'')
+    -- Weekly
     ,('Monitor', 'database_configurations',     1, 'Weekly',    N'', N'')
     ,('Monitor', 'database_users',              2, 'Weekly',    N'', N'')
     ,('Monitor', 'database_tables',             3, 'Weekly',    N'', N'')
+    ,('Monitor', 'server_freespace',            4, 'Weekly',    N'', N'')
+    -- Daily
+    ,('Monitor', 'server_agentjobs',            1, 'Daily',     N'', N'')
+    ,('Monitor', 'database_backup_history',     2, 'Daily',     N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = ''{0}'';', N'')
+    -- Hourly
+    -- Minute
+    -- Manual
     ,('Monitor', 'server_errorlog',             1, 'Manual',    N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';', N'')
 GO
 
