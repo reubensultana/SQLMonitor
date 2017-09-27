@@ -25,29 +25,34 @@ CREATE TABLE #ErrorLog (
     [LogText] varchar(max)
 );
 
-INSERT INTO #ErrorLogs
-    EXEC sys.sp_enumerrorlogs;
-
-DECLARE L1 CURSOR FOR 
-    SELECT [LogNumber] FROM #ErrorLogs WHERE [LogDate] >= @StartDate
-    UNION ALL
-    SELECT TOP(1) [LogNumber] FROM #ErrorLogs WHERE [LogDate] < @StartDate ORDER BY [LogNumber] ASC;
-OPEN L1;
-FETCH NEXT FROM L1 INTO @ErrorLogNumber;
-WHILE (@@FETCH_STATUS = 0)
+IF CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) NOT IN (
+    N'CFSDGLITIGFI01', 
+    N'CFSDGLITIMGT01')
 BEGIN
-    SET @SQLCmd = N'EXEC sys.sp_readerrorlog ' + CAST(@ErrorLogNumber AS nvarchar(10)) + N', 1, ''' + @ErrorMsg + N''';'
-    INSERT INTO #ErrorLog 
-        EXEC sp_executesql @SQLCmd;
+    INSERT INTO #ErrorLogs
+        EXEC sys.sp_enumerrorlogs;
 
+    DECLARE L1 CURSOR FOR 
+        SELECT [LogNumber] FROM #ErrorLogs WHERE [LogDate] >= @StartDate
+        UNION ALL
+        SELECT TOP(1) [LogNumber] FROM #ErrorLogs WHERE [LogDate] < @StartDate ORDER BY [LogNumber] ASC;
+    OPEN L1;
     FETCH NEXT FROM L1 INTO @ErrorLogNumber;
-END
-CLOSE L1;
-DEALLOCATE L1;
+    WHILE (@@FETCH_STATUS = 0)
+    BEGIN
+        SET @SQLCmd = N'EXEC sys.sp_readerrorlog ' + CAST(@ErrorLogNumber AS nvarchar(10)) + N', 1, ''' + @ErrorMsg + N''';'
+        INSERT INTO #ErrorLog 
+            EXEC sp_executesql @SQLCmd;
 
-SELECT 
+        FETCH NEXT FROM L1 INTO @ErrorLogNumber;
+    END
+    CLOSE L1;
+    DEALLOCATE L1;
+END
+    
+SELECT
     CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) as [ServerName],
-    [LogDate], 
+    [LogDate], 2
     [ProcessInfo], 
     [LogText]
 FROM #ErrorLog

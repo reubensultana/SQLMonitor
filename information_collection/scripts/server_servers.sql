@@ -2,7 +2,7 @@
 SET NOCOUNT ON;
 
 SELECT 
-    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS ServerName
+    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS [ServerName]
     ,[server_id] AS [ServerID]
     ,[name] AS [LinkedServer]
     ,[product] AS [ProductName]

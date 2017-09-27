@@ -81,7 +81,7 @@ DEALLOCATE @DatabaseList;
 
 -- return data
 SELECT 
-    CONVERT(nvarchar(128), @@SERVERNAME) as [ServerName],
+    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) as [ServerName],
     a.[database_name] AS [DatabaseName], 
     a.[member_name] AS [PrincipalName],
     SUM([db_accessadmin]) AS [db_accessadmin],

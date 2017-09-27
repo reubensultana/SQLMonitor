@@ -39,27 +39,35 @@ WHILE (@@FETCH_STATUS = 0)
 BEGIN
     SET @SQLCmd = N'
 USE [' + @database_name + N'];
-SELECT 
-    SCHEMA_NAME(sobj.schema_id) + ''.'' + sobj.name AS [TableName], 
-    SUM(sptn.Rows) AS [RowCount],
-    SUM(total_pages*8) AS [ReservedKB],
-    SUM(data_pages*8) AS [DataSizeKB],
-    SUM((used_pages-data_pages)*8) AS [IndexSizeKB],
-    SUM((total_pages-used_pages)*8) AS [UnusedSpaceKB]
-FROM sys.objects AS sobj
-    INNER JOIN sys.partitions AS sptn ON sobj.object_id = sptn.object_id
-    INNER JOIN sys.allocation_units sau ON sau.container_id = (
-        CASE sau.type 
-            WHEN 1 THEN sptn.hobt_id 
-            WHEN 2 THEN sptn.partition_id 
-            WHEN 3 THEN sptn.hobt_id 
-        END
-        )
-WHERE sobj.type = ''U''
-AND sobj.is_ms_shipped = 0x0
-AND sptn.index_id < 2 -- 0:Heap, 1:Clustered
-GROUP BY sobj.schema_id, sobj.name
-ORDER BY [TableName];
+-- check if 
+IF ((SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES) > 5000)
+BEGIN
+	PRINT ''More than 5,000 Tables have been found in ' + @database_name + N'. This database will be skipped.''
+END
+ELSE
+BEGIN
+	SELECT 
+		SCHEMA_NAME(sobj.schema_id) + ''.'' + sobj.name AS [TableName], 
+		(SELECT TOP(1) Rows FROM sys.partitions WHERE object_id = sptn.object_id) AS [RowCount],
+		SUM(total_pages*8) AS [ReservedKB],
+		SUM(data_pages*8) AS [DataSizeKB],
+		SUM((used_pages-data_pages)*8) AS [IndexSizeKB],
+		SUM((total_pages-used_pages)*8) AS [UnusedSpaceKB]
+	FROM sys.objects AS sobj
+		INNER JOIN sys.partitions AS sptn ON sobj.object_id = sptn.object_id
+		INNER JOIN sys.allocation_units sau ON sau.container_id = (
+			CASE sau.type 
+				WHEN 1 THEN sptn.hobt_id 
+				WHEN 2 THEN sptn.partition_id 
+				WHEN 3 THEN sptn.hobt_id 
+			END
+			)
+	WHERE sobj.type = ''U''
+	AND sobj.is_ms_shipped = 0x0
+	AND sptn.index_id < 2 -- 0:Heap, 1:Clustered
+	GROUP BY sobj.schema_id, sobj.name, sptn.object_id
+	ORDER BY [TableName];
+END
 ';
 	INSERT INTO #TableSpaceUsed_temp
     EXEC sp_executesql @SQLCmd;

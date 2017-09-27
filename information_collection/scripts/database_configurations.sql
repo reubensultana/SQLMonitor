@@ -2,7 +2,7 @@
 SET NOCOUNT ON;
 
 SELECT 
-    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS ServerName,
+    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS [ServerName],
     DB_NAME(database_id) AS [DatabaseName],
     [file_id] AS [FileID], 
     [type_desc] AS [FileType], 

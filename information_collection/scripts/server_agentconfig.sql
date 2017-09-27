@@ -47,7 +47,10 @@ DECLARE @DatabaseMailProfile nvarchar(128);
 
 -- run only on supported Editions
 SET @Edition = CAST(SERVERPROPERTY('Edition') AS nvarchar(128));
-IF (@Edition LIKE 'Enterprise%') OR (@Edition LIKE 'Business Intelligence%') OR (@Edition LIKE 'Developer%') OR (@Edition LIKE 'Standard%')
+IF  (@Edition LIKE 'Developer%') OR 
+    (@Edition LIKE 'Enterprise%') OR 
+    (@Edition LIKE 'Business Intelligence%') OR 
+    (@Edition LIKE 'Standard%')
 BEGIN
     IF EXISTS (SELECT 1 FROM sys.configurations WHERE [name] = 'show advanced options' AND [value] = 0)
     BEGIN

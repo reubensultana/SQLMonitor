@@ -10,14 +10,14 @@ SELECT
     COALESCE(d.[permission_name], '') AS [SecurablesPermissions]
 FROM (
     SELECT 
-        CONVERT(nvarchar(128), @@SERVERNAME) as ServerName,
+        CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS [ServerName],
         sp.[sid] AS [sid],
         sp.[name] AS [LoginName],
         sp.[type_desc] AS [Type],
         CONVERT(datetime, sp.[create_date]) AS [CreateDate],
         CONVERT(datetime, sp.[modify_date]) AS [ModifyDate],
-        sp.[default_database_name] AS [DefaultDatabase],
-        sp.[default_language_name] AS [DefaultLanguage],
+        COALESCE(sp.[default_database_name], '') AS [DefaultDatabase],
+        COALESCE(sp.[default_language_name], '') AS [DefaultLanguage],
         sp.[is_disabled] AS [IsDisabled],
         COALESCE(sl.[is_policy_checked], 0) AS [IsPolicyChecked],
         COALESCE(sl.[is_expiration_checked], 0) AS [IsExpirationChecked],

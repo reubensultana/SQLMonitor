@@ -282,10 +282,11 @@ function Write-DataTable
     try 
     { 
         $conn.Open() 
-        $bulkCopy = new-object ("Data.SqlClient.SqlBulkCopy") $connectionString 
+        #$bulkCopy = new-object ("Data.SqlClient.SqlBulkCopy") $connectionString
+        $bulkCopy = new-object Data.SqlClient.SqlBulkCopy -argumentlist $conn,$([System.Data.SqlClient.SqlBulkCopyOptions]::FireTriggers -bor 0),$null
         $bulkCopy.DestinationTableName = $tableName 
         $bulkCopy.BatchSize = $BatchSize 
-        $bulkCopy.BulkCopyTimeout = $QueryTimeOut 
+        $bulkCopy.BulkCopyTimeout = $QueryTimeOut
         $bulkCopy.WriteToServer($Data) 
         $conn.Close() 
     } 

@@ -7,7 +7,7 @@ SELECT
     SUSER_SNAME([owner_sid]) AS [DatabaseOwner],
     CONVERT(datetime, [create_date]) AS [CreateDate],
     [compatibility_level] AS [CompatibilityLevel],
-    COALESCE([collation_name], '') AS [CollationName], -- NULL = Database is not online or AUTO_CLOSE is set to ON and the database is closed
+    COALESCE([collation_name], '') AS [CollationName], 
     [user_access_desc] AS [UserAccess],
     [is_read_only] AS [IsReadOnly],
     [is_auto_close_on] AS [IsAutoClose],
