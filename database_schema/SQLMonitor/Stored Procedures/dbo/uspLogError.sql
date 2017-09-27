@@ -22,6 +22,7 @@ ALTER PROCEDURE [dbo].[uspLogError]
 AS                               -- by uspLogError in the ErrorLog table
 BEGIN
     SET NOCOUNT ON;
+    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
     -- Output parameter value of 0 indicates that error 
     -- information was not logged

@@ -20,6 +20,7 @@ ALTER PROCEDURE [dbo].[uspPrintError]
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 
     -- Print error information. 
     PRINT 'Error ' + CONVERT(varchar(50), ERROR_NUMBER()) +

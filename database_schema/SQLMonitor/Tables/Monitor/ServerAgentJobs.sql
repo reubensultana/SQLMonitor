@@ -7,20 +7,6 @@ BEGIN
 END
 GO
 
-/*
-[JobID] [uniqueidentifier] NOT NULL,
-[JobName] [nvarchar](128) NOT NULL,
-[Enabled] [tinyint] NOT NULL,
-[JobOwner] [nvarchar](128) NOT NULL,
-[LastRunDateTime] datetime NULL,
-[LastRunStatus] [varchar](10) NULL,
-[LastRunDuration] [time] NULL,
-[NextRunDateTime] [datetime] NULL,
-[LastInvokedBy] [nvarchar](200) NULL,
-[Cancelled\StoppedBy] [nvarchar](200) NULL,
-[Message] [nvarchar](1024) NULL,
-*/
-
 CREATE TABLE [Monitor].[ServerAgentJobs](
     [ServerAgentJobsID] [int] IDENTITY(-2147483648,1) NOT NULL,
 	[ServerName] [nvarchar](128) NOT NULL,
@@ -28,13 +14,10 @@ CREATE TABLE [Monitor].[ServerAgentJobs](
     [JobName] [nvarchar](128) NOT NULL,
     [Enabled] [tinyint] NOT NULL,
     [JobOwner] [nvarchar](128) NOT NULL,
-    [LastRunDateTime] [datetime] NULL,
-    [LastRunStatus] [varchar](10) NULL,
-    [LastRunDuration] [time] NULL,
-    [NextRunDateTime] [datetime] NULL,
-    [LastInvokedBy] [nvarchar](200) NULL,
-    [Cancelled\StoppedBy] [nvarchar](200) NULL,
-    [Message] [nvarchar](1024) NULL,
+    [DateCreated] [datetime] NOT NULL,
+    [DateModified] [datetime] NOT NULL,
+    [JobSteps] [XML] NULL,
+    [JobSchedules] [XML] NULL,
     [RecordStatus] [char] (1) NOT NULL,        -- record status - used to determine if the record is active or not
     [RecordCreated] [datetime2] (0) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]

@@ -36,6 +36,15 @@ WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE
     ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
 GO
 
+-- indexes created for performance
+CREATE NONCLUSTERED INDEX [IX_DatabaseBackupHistory_ServerName]
+ON [Monitor].[DatabaseBackupHistory] ([ServerName])
+INCLUDE ([StartDate])
+WITH (
+    PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, 
+    DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90
+)
+GO
 
 -- default constraint on RecordStatus = "A"
 ALTER TABLE [Monitor].[DatabaseBackupHistory] ADD CONSTRAINT

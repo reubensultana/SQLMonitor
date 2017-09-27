@@ -15,18 +15,27 @@ BEGIN
 CREATE DATABASE [SQLMonitor] ON PRIMARY ( 
     NAME = N''SQLMonitor'', 
     FILENAME = ''' + @device_directory + 'SQLMonitor.mdf'' , 
-    SIZE = 5120KB , 
-    FILEGROWTH = 1024KB ),
+    SIZE = 5MB , 
+    FILEGROWTH = 1MB,
+    MAXSIZE = 20MB ),
 FILEGROUP TABLES ( 
     NAME = N''SQLMonitor_tables'', 
     FILENAME = ''' + @device_directory + 'SQLMonitor_tables.ndf'' , 
-    SIZE = 50MB , 
-    FILEGROWTH = 5GB )
+    SIZE = 100MB , 
+    FILEGROWTH = 100MB,
+    MAXSIZE = 5GB ),
+FILEGROUP ARCHIVE ( 
+    NAME = N''SQLMonitor_archive'', 
+    FILENAME = ''' + @device_directory + 'SQLMonitor_archive.ndf'' , 
+    SIZE = 100MB , 
+    FILEGROWTH = 100MB,
+    MAXSIZE = 5GB )
 LOG ON ( 
     NAME = N''SQLMonitor_log'', 
     FILENAME = ''' + @device_directory + 'SQLMonitor_log.ldf'' , 
-    SIZE = 5120KB , 
-    FILEGROWTH = 1024KB );';
+    SIZE = 100MB , 
+    FILEGROWTH = 100MB,
+    MAXSIZE = 2GB );';
 
     EXEC sp_executesql @sqlcmd;
 
@@ -65,4 +74,8 @@ GO
 
 IF NOT EXISTS (SELECT name FROM sys.filegroups WHERE is_default=1 AND name = N'TABLES') 
     ALTER DATABASE [SQLMonitor] MODIFY FILEGROUP [TABLES] DEFAULT
+GO
+
+
+USE [master]
 GO

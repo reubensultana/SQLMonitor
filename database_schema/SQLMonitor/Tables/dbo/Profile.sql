@@ -54,6 +54,10 @@ GO
 
 
 -- generate initial data set
+-- NOTE: variable mappings for the "PreExecuteScript" column:
+--     {0} => ServerName
+-- ---------------------------------------------
+-- TRUNCATE TABLE [dbo].[Profile];
 INSERT INTO [dbo].[Profile] (
     ProfileName, ScriptName, ExecutionOrder, ProfileType, PreExecuteScript, ExecuteScript)
 VALUES
@@ -76,20 +80,16 @@ VALUES
     ,('Monitor', 'server_agentjobs',            1, 'Daily',     N'', N'')
     ,('Monitor', 'database_backup_history',     2, 'Daily',     N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = ''{0}'';', N'')
     -- Hourly
+    ,('Monitor', 'server_errorlog',             1, 'Hourly',    N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';', N'')
     -- Minute
+    ,('Monitor', 'server_agentjobshistory',     1, 'Minute',    N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([LastRunTime]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerAgentJobsHistory] WHERE [ServerName] = ''{0}'';', N'')
     -- Manual
-    ,('Monitor', 'server_errorlog',             1, 'Manual',    N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';', N'')
+    ,('Monitor', 'database_indexusagestats',    2, 'Manual',    N'USE [SQLMonitor]; TRUNCATE TABLE [Staging].[IndexUsageStats];', N'')
+    ,('Monitor', 'database_missingindexstats',  3, 'Manual',    N'USE [SQLMonitor]; TRUNCATE TABLE [Staging].[MissingIndexStats];', N'')
 GO
 
-/*
-yy - year
-mm - month
-ww - week
-dd - day
-hh - hour
-nn - minute
-ot - one-time
-*/
+-- SELECT * FROM [SQLMonitor].[dbo].[Profile]
+
 
 USE [master]
 GO
