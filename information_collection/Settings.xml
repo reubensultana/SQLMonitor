@@ -4,5 +4,17 @@
         <ServerInstance>SQLSRV01</ServerInstance>
         <Database>SQLMonitor</Database>
         <ProfileName>Monitor</ProfileName>
+        <QueryTimeout>1800</QueryTimeout>
     </DatabaseConnection>
+	<EmailParams>
+		<SmtpServer>mailserver.mycompany.com</SmtpServer>
+		<TCPPort>25</TCPPort>
+        <EmailSubject>SQL Monitor {0} Reports</EmailSubject>
+        <EmailFrom>dba.team@mycompany.com</EmailFrom>
+	</EmailParams>
+    <ReportStyleSheet>
+        <TableStyle>{border-width: 1px;border-style: solid;border-color: black;border-collapse: collapse;}</TableStyle>
+        <TableHeaderSyle>{border-width: 1px;padding: 3px;border-style: solid;border-color: black;font-family: Verdana;font-size: x-small;}</TableHeaderSyle>
+        <TableDataSyle>{border-width: 1px;padding: 3px;border-style: solid;border-color: black;font-family: Verdana;font-size: x-small;}</TableDataSyle>
+    </ReportStyleSheet>
 </Settings>
