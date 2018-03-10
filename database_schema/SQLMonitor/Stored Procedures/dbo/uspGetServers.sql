@@ -19,13 +19,7 @@ BEGIN
     SELECT ServerName, SqlTcpPort FROM [dbo].[MonitoredServers] 
 	WHERE [RecordStatus] = 'A' 
 	AND [ServerDomain] LIKE @DomainName
-	ORDER BY [ServerOrder], 
-        CASE 
-            WHEN [ServerName] LIKE 'CFS%' THEN 1 
-            WHEN [ServerName] LIKE 'STG%' THEN 2 
-            WHEN [ServerName] LIKE 'DEV%' THEN 3 
-            ELSE 4 
-        END;
+	ORDER BY [ServerOrder] ASC, [ServerName] ASC;
 END
 GO
 
