@@ -25,9 +25,10 @@ CREATE TABLE #ErrorLog (
     [LogText] varchar(max)
 );
 
+-- exclude servers
 IF CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) NOT IN (
-    N'CFSDGLITIGFI01', 
-    N'CFSDGLITIMGT01')
+    N'SRVR01', 
+    N'SRVR99')
 BEGIN
     INSERT INTO #ErrorLogs
         EXEC sys.sp_enumerrorlogs;
