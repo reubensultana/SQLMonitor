@@ -1,4 +1,4 @@
-﻿param([String]$ReportType = '')
+param([String]$ReportType = '')
 
 # 
 # Usage: 
@@ -51,6 +51,7 @@ function Send-EmailReport {
         $ErrorActionPreference = "Stop";
         Send-MailMessage @options
         # NOTE: This cmdlet does not generate any output.
+        Start-Sleep -Seconds 5
         }
     catch{
         # out-file $global:logFileName -Append
@@ -63,7 +64,10 @@ function Send-EmailReport {
 
 function Build-EmailReport {
     param (
-    [Parameter(Position=0, Mandatory=$true)]  [string]$ReportType      # the report frequency
+    [Parameter(Position=0, Mandatory=$true)]
+    [ValidateSet("Monthly", "Weekly", "Daily", "Manual", "Custom Monthly", "Custom Weekly", "Custom Daily", "Custom Test")] 
+    [string]$ReportType      # the report frequency
+
     )
 
     # Import settings from config file
