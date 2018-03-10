@@ -1,7 +1,8 @@
-﻿param([String]$ServerName = '',
+param([String]$ServerName = '',
 	  [String]$DatabaseName = '',
       [String]$MonitorProfile = '',
-      [String]$MonitorProfileType = '')
+      [String]$MonitorProfileType = '',
+	  [String]$QueryTimeout = 30)
 
 # 
 # Usage: 
@@ -28,36 +29,38 @@ function Get-ServerInfo() {
     [Parameter(Position=0, Mandatory=$true)] [string]$ServerInstance, 
     [Parameter(Position=1, Mandatory=$true)] [string]$Database,
     [Parameter(Position=2, Mandatory=$true)] [string]$ProfileName,
-    [Parameter(Position=3, Mandatory=$true)] [string]$ProfileType
+    [Parameter(Position=3, Mandatory=$true)] [string]$ProfileType,
+	[Parameter(Position=4, Mandatory=$false)] [string]$QueryTimeout = 360
     )  
     
     [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | out-null
     [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") | out-null
     
     # start here
-    "{0} : ============================== "
+    "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
     "{0} : Starting function: Get-ServerInfo" -f $(Get-Date -Format "HH:mm:ss")
     "{0} : Server Name:       {1}" -f $(Get-Date -Format "HH:mm:ss"), $ServerInstance
     "{0} : Database Name:     {1}" -f $(Get-Date -Format "HH:mm:ss"), $Database
     "{0} : Profile Name:      {1}" -f $(Get-Date -Format "HH:mm:ss"), $ProfileName
     "{0} : Profile Type:      {1}" -f $(Get-Date -Format "HH:mm:ss"), $ProfileType
+	"{0} : Query Timeout:     {1}" -f $(Get-Date -Format "HH:mm:ss"), $QueryTimeout
     "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
     
     # $scriptroot = "$($CurrentPath)\scripts\"
     $scriptroot = ".\scripts\"
 
     # get profile (incl, script names and scripts)
-    $sql = "EXEC dbo.uspGetProfile '{0}', '{1}'" -f $ProfileName, $ProfileType
-    $scripts = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
+    $sql = "EXEC dbo.uspGetProfile '{0}', '{1}';" -f $ProfileName, $ProfileType
+    $scripts = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
 
     # get list of servers
     $sql = "EXEC dbo.uspGetServers;"
-    $ServerInstances = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
-
+    $ServerInstances = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
+	
     # clear
     $sql = $null
 
-    if ($scripts.Count -gt 0) {
+	if ($scripts.Table.Rows.Count -gt 0) {
         Foreach ($Server in $ServerInstances) {
             $ServerName = $Server.ServerName
             $TcpPort = $Server.SqlTcpPort
@@ -92,7 +95,7 @@ function Get-ServerInfo() {
                         # this will avoid that say, a script that should run Monthly is run multiple times during the month
                         # the COALESCE function will either return the value of the most recent RecordCreated column for that server OR the value 600,000 (which is more than 1 year in minutes)
                         $sql = "SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), CURRENT_TIMESTAMP), 600000) AS [MinutesElapsed] FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)';"
-                        $result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
+                        $result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
                         $minuteselapsed = $result.MinutesElapsed
                         $result = $null
 
@@ -106,7 +109,7 @@ function Get-ServerInfo() {
                                 # replace the parameter with the server name
                                 $preexecutescript = $preexecutescript -f $ServerName
                                 # execute the query against the monitoring database
-                                $preexecuteresult = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $preexecutescript -QueryTimeout 30
+                                $preexecuteresult = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $preexecutescript -QueryTimeout $QueryTimeout
                             }
 
                             "{0} : Running script:    {1}" -f $(Get-Date -Format "HH:mm:ss"), $scriptname
@@ -124,7 +127,7 @@ function Get-ServerInfo() {
                             }
                             # run and store the output in a data table variable
                             try {
-                                $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $sql.ToString() -QueryTimeout 360
+                                $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $sql.ToString() -QueryTimeout $QueryTimeout
                                 $ErrorMessage = $null
                             }
                             catch {
@@ -149,7 +152,7 @@ function Get-ServerInfo() {
 
                                 # update the status for older data
                                 $sql = "UPDATE $($ProfileName).$($tablename) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
-                                Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
+                                Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
 
                                 # write data extracted from remote server to the central table
                                 if ($dtRowCount -gt 0) {
@@ -209,8 +212,7 @@ function Get-ServerInfo() {
 Clear-Host
 # run this only if the parameters have been passed to the script
 # interface implemented to be called from Windows Task Scheduler or similar applications
-#if (($ServerName -ne '') -and ($DatabaseName -ne '') -and ($MonitorProfile -ne '') -and ($MonitorProfileType -ne '')) {
 if (($ServerInstance -ne '') -and ($Database -ne '') -and ($ProfileName -ne '') -and ($ProfileType -ne '')) {
-    Get-ServerInfo -ServerInstance $ServerInstance -Database $Database -ProfileName $ProfileName -ProfileType $ProfileType
+    Get-ServerInfo -ServerInstance $ServerInstance -Database $Database -ProfileName $ProfileName -ProfileType $ProfileType -QueryTimeout $QueryTimeout
 }
 # otherwise, do nothing
