@@ -53,43 +53,5 @@ ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
 GO
 
 
--- generate initial data set
--- NOTE: variable mappings for the "PreExecuteScript" column:
---     {0} => ServerName
--- ---------------------------------------------
--- TRUNCATE TABLE [dbo].[Profile];
-INSERT INTO [dbo].[Profile] (
-    ProfileName, ScriptName, ExecutionOrder, ProfileType, PreExecuteScript, ExecuteScript)
-VALUES
-    -- Annual
-    -- Monthly
-     ('Monitor', 'server_info',                 1, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_logins',               2, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_databases',            3, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_configurations',       4, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_servers',              5, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_triggers',             6, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_endpoints',            7, 'Monthly',   N'', N'')
-    ,('Monitor', 'server_agentconfig',          8, 'Monthly',   N'', N'')
-    -- Weekly
-    ,('Monitor', 'database_configurations',     1, 'Weekly',    N'', N'')
-    ,('Monitor', 'database_users',              2, 'Weekly',    N'', N'')
-    ,('Monitor', 'database_tables',             3, 'Weekly',    N'', N'')
-    ,('Monitor', 'server_freespace',            4, 'Weekly',    N'', N'')
-    -- Daily
-    ,('Monitor', 'server_agentjobs',            1, 'Daily',     N'', N'')
-    ,('Monitor', 'database_backup_history',     2, 'Daily',     N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = ''{0}'';', N'')
-    -- Hourly
-    ,('Monitor', 'server_errorlog',             1, 'Hourly',    N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';', N'')
-    -- Minute
-    ,('Monitor', 'server_agentjobshistory',     1, 'Minute',    N'USE [SQLMonitor]; SELECT COALESCE(CONVERT(varchar(25), MAX([LastRunTime]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerAgentJobsHistory] WHERE [ServerName] = ''{0}'';', N'')
-    -- Manual
-    ,('Monitor', 'database_indexusagestats',    2, 'Manual',    N'USE [SQLMonitor]; TRUNCATE TABLE [Staging].[IndexUsageStats];', N'')
-    ,('Monitor', 'database_missingindexstats',  3, 'Manual',    N'USE [SQLMonitor]; TRUNCATE TABLE [Staging].[MissingIndexStats];', N'')
-GO
-
--- SELECT * FROM [SQLMonitor].[dbo].[Profile]
-
-
 USE [master]
 GO

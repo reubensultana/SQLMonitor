@@ -7,7 +7,7 @@ GO
 
 CREATE TABLE [dbo].[Reports] (
     [ReportID] [int] IDENTITY(1,1) NOT NULL,
-    [ReportName] [varchar](50) NOT NULL,    -- the actual report name as it will appear on the output
+    [ReportName] [varchar](100) NOT NULL,   -- the actual report name as it will appear on the output
     [ReportType] [varchar](50) NOT NULL,    -- defines execution schedule: Monthly, Weekly, Daily, Manual, Custom Monthly, Custom Weekly, Custom Daily
     [PreExecuteScript] [nvarchar](4000) NOT NULL,   -- optional: script which should be run before every iteration of the main script; used to retrieve single values which can then be used in the main script.
     [ExecuteScript] nvarchar(max) NOT NULL,     -- the actual script which will be executed with each iteration - if empty, the script file will be used instead
@@ -51,51 +51,6 @@ GO
 ALTER TABLE [dbo].[Reports] ADD CONSTRAINT
 	DF_Report_ExecuteScript DEFAULT N'' FOR [ExecuteScript]
 GO
-
-
--- generate initial data set
--- ---------------------------------------------
--- TRUNCATE TABLE [dbo].[Reports];
-SET IDENTITY_INSERT [dbo].[Reports] ON;
-GO
-INSERT INTO [dbo].[Reports] (
-    ReportID, ReportName, ReportType, ExecutionOrder, PreExecuteScript, ExecuteScript, CreateChart, RecordStatus
-    )
-VALUES
-     (1,    'Failed Agent Jobs',        'Daily',        1,  '', 'EXEC [Reporting].[uspFailedServerAgentJobs];', 0, 'A')
-    ,(2,    'Failed Login Attempts',    'Daily',        1,  '', 'EXEC [Reporting].[uspListFailedLogins];', 0, 'A')
-    ,(3,    'Login List (sysadmins)',   'Monthly',      1,  '', 'EXEC [Reporting].[uspListServerLogins] @RoleName=''sysadmin'';', 0, 'A')
-    ,(4,    'SQL Server Builds',        'Monthly',      1,  '', 'EXEC [Reporting].[uspReportSQLBuilds];', 0, 'A')
-
-GO
-SET IDENTITY_INSERT [dbo].[Reports] OFF
-GO
-
-/*
--- EXAMPLES:
--- ----------
--- Daily
-EXEC [Reporting].[uspFailedServerAgentJobs];
-EXEC [Reporting].[uspListFailedLogins];
--- Monthly
-EXEC [Reporting].[uspListServerLogins] @RoleName='sysadmin';
-EXEC [Reporting].[uspReportSQLBuilds];
--- Custom
-EXEC [Reporting].[uspFailedServerAgentJobs] @ServerName = 'MyServer';
-EXEC [Reporting].[uspListServerFreeSpaceTrend] @ServerName='MyServer';
-EXEC [Reporting].[uspListDatabaseGrowthTrend] @ServerName='MyServer', @DatabaseName='AdventureWorks';
-EXEC [Reporting].[uspListFailedLogins] @ServerName='MyServer';
-EXEC [Reporting].[uspListServerLogins] @ServerName='MyServer', @RoleName='sysadmin';
-*/
-
-/*
--- NOTE: Watch out for single quotes in the PreExecuteScript and ExecuteScript columns
-SELECT 
-    ',(' + CAST(ReportID AS varchar(10)) + ',''' + ReportName + ''',''' + ReportType + ''',' + CAST(ExecutionOrder AS varchar(10)) + ',''' + 
-    COALESCE(PreExecuteScript, '') + ''',''' + COALESCE(ExecuteScript, '') + ''')'
-FROM [SQLMonitor].[dbo].[Reports]
-ORDER BY ReportID
-*/
 
 
 USE [master]

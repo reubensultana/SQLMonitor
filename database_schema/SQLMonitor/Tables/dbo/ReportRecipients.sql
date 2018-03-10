@@ -37,7 +37,7 @@ GO
 
 -- check constraint on RecipientEmailAddress - allowed values are properly formed company email addresses
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
-	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' AND RecipientEmailAddress LIKE '%_@mycompany.com')
+	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' AND RecipientEmailAddress LIKE '%_@lgassetservices.ie')
 GO
 
 -- default constraint on RecordStatus = "A"
@@ -53,27 +53,6 @@ GO
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
 	DF_ReportRecipient_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
 GO
-
-
--- generate initial data set
--- ---------------------------------------------
--- TRUNCATE TABLE [dbo].[ReportRecipients];
-INSERT INTO [dbo].[ReportRecipients] (
-    [ReportID], [RecipientName], [RecipientEmailAddress], [SendingOrder], [RecordStatus]
-    )
-VALUES
-    (NULL,  'Reuben Sultana',   'reuben.sultana@mycompany.com',    1, 'A')
-GO
-
-
-/*
--- NOTE: Watch out for single quotes in the PreExecuteScript and ExecuteScript columns
-SELECT 
-    ',(' + CAST(ReportID as varchar(10)) + ',''' + ReportName + ''',''' + ReportType + ''',''' + CAST(ExecutionOrder AS varchar(10)) + ''',''' + 
-    COALESCE(PreExecuteScript, '') + ''',''' + COALESCE(ExecuteScript, '') + ''')'
-FROM [SQLMonitor].[dbo].[ReportRecipients]
-ORDER BY ReportType, ExecutionOrder, ReportName
-*/
 
 
 USE [master]

@@ -8,6 +8,7 @@ GO
 CREATE TABLE [dbo].[MonitoredServers] (
     [ServerId]          [int] IDENTITY(1,1) NOT NULL,   -- unique identifier
     [ServerName]        [nvarchar] (128) NOT NULL,      -- server name
+    [ServerAlias]       [nvarchar] (128) NULL,          -- server alias (for servers which have been set up incorrectly)
     [ServerDescription] [varchar] (500) NULL,           -- short description
     [ServerIpAddress]   [varchar] (20) NOT NULL,        -- server ip address
     [SqlTcpPort]        [int] NOT NULL,                 -- instance listening port used for data collection
@@ -63,17 +64,7 @@ ALTER TABLE dbo.MonitoredServers ADD CONSTRAINT
 	DF_MonitoredServers_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
 GO
 
--- create trigger firing when RecordStatus is set to "D"
-
-
-
-
-
-/*
-SELECT ',(N''' + ServerName + ''', ''' + ServerDescription + ''', ''' + ServerIpAddress + ''', ''' + ServerDomain + ''', ' + CAST(SqlTcpPort AS varchar(10)) + ', ' + CAST(ServerOrder as varchar(10)) + ', ' + CAST(SqlVersion AS varchar(10)) + ', ''' + RecordStatus + ''')'
-FROM [dbo].[MonitoredServers]
-ORDER BY ServerName
-*/
+-- TODO: create trigger firing when RecordStatus is set to "D"
 
 
 USE [master]
