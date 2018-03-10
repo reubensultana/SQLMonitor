@@ -16,40 +16,37 @@ BEGIN
 
     IF ((COALESCE(@ServerName, NULLIF(LTRIM(RTRIM(@ServerName)), '')) IS NOT NULL) 
         AND EXISTS(
-            SELECT 1 FROM [dbo].[MonitoredServers] WHERE [RecordStatus] = 'A' --AND [ServerName]=@ServerName
-            -- temporpermanent (?) fix due to incorrect server name in sys.servers on CFSDGLPEGSQL01-PROD
-            AND [ServerName]=(CASE @ServerName WHEN 'CFSDGLPEGSQL01-' THEN 'CFSDGLPEGSQL01-PROD' ELSE @ServerName END))
+            SELECT 1 FROM [dbo].[MonitoredServers] WHERE [RecordStatus] = 'A'
+            -- temporpermanent (?) fix due to incorrect server name in sys.servers
+            AND COALESCE([ServerAlias], [ServerName]) = @ServerName
+            )
         )
     BEGIN
-        SELECT [ServerName]
-              ,[Drive]
-              ,[FreeMB]
-              ,[RecordCreated]
-        FROM [Archive].[ServerFreeSpace]
-        -- WHERE [ServerName] = @ServerName
-        -- temporpermanent (?) fix due to incorrect server name in sys.servers on CFSDGLPEGSQL01-PROD
-        WHERE [ServerName]=(CASE @ServerName WHEN 'CFSDGLPEGSQL01-PROD' THEN 'CFSDGLPEGSQL01-' ELSE @ServerName END)
-        AND [Drive] LIKE @DriveLetter
-        AND @IncludeArchive = 1 -- depends on input parameter
+        SELECT sfs.[ServerName]
+              ,sfs.[Drive]
+              ,sfs.[FreeMB]
+              ,sfs.[RecordCreated]
+        FROM [Archive].[ServerFreeSpace] sfs
+            INNER JOIN [dbo].[MonitoredServers] ms ON COALESCE(ms.[ServerAlias], ms.[ServerName]) = sfs.[ServerName]
+        -- temporpermanent (?) fix due to incorrect server name in sys.servers
+        WHERE COALESCE(ms.[ServerAlias], ms.[ServerName]) = @ServerName
+        AND sfs.[Drive] LIKE @DriveLetter
+        AND @IncludeArchive = 1 -- depends on input parameter (functions as an "if" or "case" statement)
 
         UNION ALL
 
-        SELECT [ServerName]
-              ,[Drive]
-              ,[FreeMB]
-              ,[RecordCreated]
-        FROM [Monitor].[ServerFreeSpace]
-        --WHERE [ServerName] = @ServerName
-        -- temporpermanent (?) fix due to incorrect server name in sys.servers on CFSDGLPEGSQL01-PROD
-        WHERE [ServerName]=(CASE @ServerName WHEN 'CFSDGLPEGSQL01-PROD' THEN 'CFSDGLPEGSQL01-' ELSE @ServerName END)
-        AND [Drive] LIKE @DriveLetter
+        SELECT sfs.[ServerName]
+              ,sfs.[Drive]
+              ,sfs.[FreeMB]
+              ,sfs.[RecordCreated]
+        FROM [Monitor].[ServerFreeSpace] sfs
+            INNER JOIN [dbo].[MonitoredServers] ms ON COALESCE(ms.[ServerAlias], ms.[ServerName]) = sfs.[ServerName]
+        -- temporpermanent (?) fix due to incorrect server name in sys.servers
+        WHERE COALESCE(ms.[ServerAlias], ms.[ServerName]) = @ServerName
+        AND sfs.[Drive] LIKE @DriveLetter
     END
 END
 GO
-
--- EXEC [SQLMonitor].[Reporting].[uspListServerFreeSpaceTrend] @ServerName='CFSDGLPEGSQL01-PROD', @DriveLetter='S'
--- EXEC [SQLMonitor].[Reporting].[uspListServerFreeSpaceTrend] @ServerName='CFSDGLPEGSQL01-PROD', @DriveLetter='S', @IncludeArchive=1
--- EXEC [SQLMonitor].[Reporting].[uspListServerFreeSpaceTrend] @ServerName='CFSDGLPEGSQL01-PROD', @IncludeArchive=1
 
 
 USE [master]

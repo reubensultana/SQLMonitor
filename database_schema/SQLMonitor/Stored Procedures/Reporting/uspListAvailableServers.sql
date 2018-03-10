@@ -21,9 +21,8 @@ BEGIN
         UNION ALL
         SELECT 
             [ServerName], 
-            --[ServerName] AS [ServerNameValue],
-            -- temporpermanent (?) fix due to incorrect server name in sys.servers on CFSDGLPEGSQL01-PROD
-            (CASE [ServerName] WHEN 'CFSDGLPEGSQL01-PROD' THEN 'CFSDGLPEGSQL01-' ELSE [ServerName] END) AS [ServerNameValue], 
+            -- temporpermanent (?) fix due to incorrect server name in sys.servers 
+			COALESCE([ServerAlias], [ServerName]) AS [ServerNameValue],
             [ServerOrder]
         FROM [dbo].[MonitoredServers]
         WHERE ([RecordStatus] = 'A'
@@ -31,13 +30,7 @@ BEGIN
     )
     SELECT [ServerName], [ServerNameValue], [ServerOrder]
     FROM cteServerList
-    ORDER BY [ServerOrder], 
-        CASE 
-            WHEN [ServerName] LIKE 'CFS%' THEN 1 
-            WHEN [ServerName] LIKE 'STG%' THEN 2 
-            WHEN [ServerName] LIKE 'DEV%' THEN 3 
-            ELSE 4 
-        END;
+    ORDER BY [ServerOrder], [ServerName];
 END
 GO
 
