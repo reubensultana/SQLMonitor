@@ -1,4 +1,4 @@
-﻿param([String]$ServerName = '',
+param([String]$ServerName = '',
 	  [String]$DatabaseName = '',
       [String]$MonitorProfile = '',
       [String]$MonitorProfileType = '')
@@ -39,7 +39,7 @@ $CurrentPath = $PSScriptRoot
 
 #------------------------------------------------------------# 
 
-#AreYouSure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
+#AreYouSure function. Allows user to select y or n when asked to exit. Y exits and N returns to main menu.  
 function AreYouSure {
     $areyousure = Read-Host "Are you sure you want to exit? (y/n)"
     if     ($areyousure -eq "y"){Clear-Host; Exit}
@@ -62,6 +62,7 @@ function MainMenu {
         $ServerInstance = $ConfigFile.Settings.DatabaseConnection.ServerInstance
         $Database = $ConfigFile.Settings.DatabaseConnection.Database
         $ProfileName = $ConfigFile.Settings.DatabaseConnection.ProfileName
+		$QueryTimeout = $ConfigFile.Settings.DatabaseConnection.QueryTimeout
 
         Clear-Host
         
@@ -79,20 +80,20 @@ function MainMenu {
         Write-Host "  7.  Minute"
         Write-Host "  8.  Manual"
         Write-Host "  9.  "
-        Write-Host "  10. Mantain Archive"
+        Write-Host "  10. Maintain Archive"
         Write-Host ""
         Write-Host "---------------------------------------------------------"
         $answer = Read-Host "Please choose an option"
 
         if     ($answer -eq 0) {AreYouSure}
         elseif ($answer -eq 1) {.\Test-NetworkConnection.ps1 -ServerName $ServerInstance -DatabaseName $Database;  Pause; MainMenu}
-        elseif ($answer -eq 2) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Annual";  Pause; MainMenu}
-        elseif ($answer -eq 3) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Monthly"; Pause; MainMenu}
-        elseif ($answer -eq 4) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Weekly";  Pause; MainMenu}
-        elseif ($answer -eq 5) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Daily";   Pause; MainMenu}
-        elseif ($answer -eq 6) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Hourly";  Pause; MainMenu}
-        elseif ($answer -eq 7) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Minute";  Pause; MainMenu}
-        elseif ($answer -eq 8) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Manual";  Pause; MainMenu}
+        elseif ($answer -eq 2) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Annual" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($answer -eq 3) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Monthly" -QueryTimeout $QueryTimeout; Pause; MainMenu}
+        elseif ($answer -eq 4) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Weekly" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($answer -eq 5) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Daily" -QueryTimeout $QueryTimeout;   Pause; MainMenu}
+        elseif ($answer -eq 6) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Hourly" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($answer -eq 7) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Minute" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($answer -eq 8) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Manual" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
         elseif ($answer -eq 9) {Pause; MainMenu}
         elseif ($answer -eq 10) {.\Invoke-ArchiveMaintenance.ps1 -ServerName $ServerInstance -DatabaseName $Database; Pause; MainMenu}
         else {
@@ -125,13 +126,8 @@ function MainMenu {
 #------------------------------------------------------------# 
 
 Clear-Host
-# run this only if the parameters have been passed to the script
-# interface implemented to be called from Windows Task Scheduler or similar applications
-if (($ServerName -ne '') -and ($DatabaseName -ne '') -and ($MonitorProfile -ne '') -and ($MonitorProfileType -ne '')) {
-    Get-ServerInfo -ServerInstance $ServerName -Database $DatabaseName -ProfileName $MonitorProfile -ProfileType $MonitorProfileType
-}
-# otherwise display the menu
-else { MainMenu }
+# display the menu
+MainMenu
 
 
 
