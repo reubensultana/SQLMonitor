@@ -1,4 +1,4 @@
-﻿param([String]$ServerName = '',
+param([String]$ServerName = '',
 	  [String]$DatabaseName = '')
 
 # 
@@ -68,7 +68,7 @@ function Test-NetworkConnection() {
     [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") | out-null
     
     # start here
-    "{0} : ============================== "
+    "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
     "{0} : Starting function: Test-NetworkConnection" -f $(Get-Date -Format "HH:mm:ss")
     "{0} : Server Name:       {1}" -f $(Get-Date -Format "HH:mm:ss"), $ServerInstance
     "{0} : Database Name:     {1}" -f $(Get-Date -Format "HH:mm:ss"), $Database
