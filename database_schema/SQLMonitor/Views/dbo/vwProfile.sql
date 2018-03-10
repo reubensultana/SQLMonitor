@@ -18,7 +18,7 @@ SELECT
         WHEN 'Daily'    THEN DATEDIFF(N, DATEADD(DD, -1, CURRENT_TIMESTAMP), CURRENT_TIMESTAMP)
         WHEN 'Hourly'   THEN DATEDIFF(N, DATEADD(HH, -1, CURRENT_TIMESTAMP), CURRENT_TIMESTAMP)
         WHEN 'Minute'   THEN DATEDIFF(N, DATEADD(N , -1, CURRENT_TIMESTAMP), CURRENT_TIMESTAMP)
-        WHEN 'Manual'   THEN 0
+        WHEN 'Manual'   THEN 1
         ELSE 0
     END AS [IntervalMinutes],
     p.[ExecutionOrder]
