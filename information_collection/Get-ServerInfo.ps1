@@ -94,7 +94,7 @@ function Get-ServerInfo() {
                         # check when the script was last run and compare to the pre-defined value for how many minutes should have elapsed
                         # this will avoid that say, a script that should run Monthly is run multiple times during the month
                         # the COALESCE function will either return the value of the most recent RecordCreated column for that server OR the value 600,000 (which is more than 1 year in minutes)
-                        $sql = "SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), CURRENT_TIMESTAMP), 600000) AS [MinutesElapsed] FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)';"
+                        $sql = "SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), CURRENT_TIMESTAMP), 600000) AS [MinutesElapsed] FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
                         $result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
                         $minuteselapsed = $result.MinutesElapsed
                         $result = $null
