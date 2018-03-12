@@ -52,7 +52,7 @@ VALUES
     ,('Monitor','database_indexusagestats','3','Daily','USE [SQLMonitor]; TRUNCATE TABLE [Staging].[IndexUsageStats];','')
     ,('Monitor','database_missingindexstats','4','Daily','USE [SQLMonitor]; TRUNCATE TABLE [Staging].[MissingIndexStats];','')
 
-    ,('Monitor','server_errorlog','1','Hourly','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'' AND [RecordStatus] = ''A'';','')
+    ,('Monitor','server_errorlog','1','Hourly','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';','')
     
     ,('Monitor','blitz_results','0','Manual','USE [SQLMonitor]; DELETE FROM [Monitor].[BlitzResults] WHERE [ServerName] = ''{0}'';','')
     
