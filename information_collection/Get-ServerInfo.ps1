@@ -151,7 +151,7 @@ function Get-ServerInfo() {
                                 }
 
                                 # update the status for older data
-                                $sql = "UPDATE $($ProfileName).$($tablename) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
+                                $sql = "IF EXISTS (SELECT 1 FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A') UPDATE $($ProfileName).$($tablename) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
                                 Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
 
                                 # write data extracted from remote server to the central table
