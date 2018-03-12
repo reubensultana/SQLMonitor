@@ -48,15 +48,15 @@ INSERT INTO [dbo].[Profile] (
     ProfileName, ScriptName, ExecutionOrder, ProfileType, PreExecuteScript, ExecuteScript )
 VALUES
     ('Monitor','server_agentjobs','1','Daily','','')
-    ,('Monitor','database_backup_history','2','Daily','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = ''{0}'';','')
+    ,('Monitor','database_backup_history','2','Daily','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = ''{0}'' AND [RecordStatus] = ''A'';','')
     ,('Monitor','database_indexusagestats','3','Daily','USE [SQLMonitor]; TRUNCATE TABLE [Staging].[IndexUsageStats];','')
     ,('Monitor','database_missingindexstats','4','Daily','USE [SQLMonitor]; TRUNCATE TABLE [Staging].[MissingIndexStats];','')
 
-    ,('Monitor','server_errorlog','1','Hourly','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';','')
+    ,('Monitor','server_errorlog','1','Hourly','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'' AND [RecordStatus] = ''A'';','')
     
     ,('Monitor','blitz_results','0','Manual','USE [SQLMonitor]; DELETE FROM [Monitor].[BlitzResults] WHERE [ServerName] = ''{0}'';','')
     
-    ,('Monitor','server_agentjobshistory','1','Minute','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LastRunTime]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerAgentJobsHistory] WHERE [ServerName] = ''{0}'';','')
+    ,('Monitor','server_agentjobshistory','1','Minute','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LastRunTime]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerAgentJobsHistory] WHERE [ServerName] = ''{0}'' AND [RecordStatus] = ''A'';','')
     
     ,('Monitor','server_info','1','Monthly','','')
     ,('Monitor','server_logins','2','Monthly','','')
