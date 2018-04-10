@@ -16,8 +16,10 @@ $filelist = New-Object System.Collections.ArrayList
 # NOTE: The "> $null" part is to remove the array item index output
 # ----- database schema and initial objects -----
 $filelist.Add("\create_database.sql") > $null
+$filelist.Add("\create_database_archive.sql") > $null
 $filelist.Add("\Tables\dbo\DatabaseLog.sql") > $null
 $filelist.Add("\Database Triggers\ddlDatabaseTriggerLog.sql") > $null
+$filelist.Add("\Database Triggers\ddlDatabaseTriggerLog_Archive.sql") > $null
 $filelist.Add("\Security\schemas.sql") > $null
 $filelist.Add("\Security\users.sql") > $null
 
@@ -121,6 +123,9 @@ $filelist.Add("\Stored Procedures\Reporting\uspListServerFreeSpace.sql") > $null
 $filelist.Add("\Stored Procedures\Reporting\uspListServerLogins.sql") > $null
 $filelist.Add("\Stored Procedures\Reporting\uspReportServerInformation.sql") > $null
 $filelist.Add("\Stored Procedures\Reporting\uspReportSQLBuilds.sql") > $null
+
+# ----- synonyms -----
+$filelist.Add("\Synonyms\synonyms.sql") > $null
 
 # ----- initial data set -----
 $filelist.Add("\initial_data_set.sql") > $null

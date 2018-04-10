@@ -1,4 +1,4 @@
-USE [SQLMonitor]
+USE [SQLMonitorArchive]
 GO
 
 IF OBJECT_ID('[Archive].[IndexUsageStats]') IS NOT NULL
