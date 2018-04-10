@@ -445,7 +445,7 @@ GO
 /*
 -- Test Check Constraint:
 INSERT INTO [dbo].[ReportRecipients] ([RecipientName], [RecipientEmailAddress], [SendingOrder], [RecordStatus])
-VALUES ('Reuben Sultana GMAIL', 'reuben.sultana@gmail.com', 1, 'A');
+VALUES ('GMAIL Sample', 'firstname.surname@gmail.com', 1, 'A');
 */
 
 -- SELECT * FROM [dbo].[ReportRecipients] ORDER BY [ReportRecipientID]
