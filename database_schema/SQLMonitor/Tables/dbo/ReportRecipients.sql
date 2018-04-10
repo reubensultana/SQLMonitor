@@ -26,7 +26,8 @@ WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE
 GO
 
 -- nonclustered index on ReportID and RecipientEmailAddress to enforce uniqueness
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ReportRecipients]') AND name = N'IDX_ReportRecipients_ID_EmailAddress')
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ReportRecipients]') 
+	       AND name = N'IDX_ReportRecipients_ID_EmailAddress')
 CREATE UNIQUE NONCLUSTERED INDEX [IDX_ReportRecipients_ID_EmailAddress]
     ON [dbo].[ReportRecipients] ( [ReportID] ASC, [RecipientEmailAddress] ASC )
 WITH (
@@ -37,7 +38,8 @@ GO
 
 -- check constraint on RecipientEmailAddress - allowed values are properly formed company email addresses
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
-	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' AND RecipientEmailAddress LIKE '%_@lgassetservices.ie')
+	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' 
+							AND RecipientEmailAddress LIKE '%_@mycompany.com')
 GO
 
 -- default constraint on RecordStatus = "A"
