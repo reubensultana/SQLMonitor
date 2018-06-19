@@ -7,7 +7,6 @@ GO
 
 CREATE TABLE [dbo].[ReportRecipients] (
     [ReportRecipientID] [int] IDENTITY(1,1) NOT NULL,
-    [ReportID] [int] NULL,
     [RecipientName] [varchar](50) NOT NULL,
     [RecipientEmailAddress] [varchar](65) NOT NULL,
     [SendingOrder] [tinyint] NOT NULL DEFAULT(0),
@@ -26,10 +25,9 @@ WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE
 GO
 
 -- nonclustered index on ReportID and RecipientEmailAddress to enforce uniqueness
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ReportRecipients]') 
-	       AND name = N'IDX_ReportRecipients_ID_EmailAddress')
-CREATE UNIQUE NONCLUSTERED INDEX [IDX_ReportRecipients_ID_EmailAddress]
-    ON [dbo].[ReportRecipients] ( [ReportID] ASC, [RecipientEmailAddress] ASC )
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[ReportRecipients]') AND name = N'IDX_ReportRecipients_EmailAddress')
+CREATE UNIQUE NONCLUSTERED INDEX [IDX_ReportRecipients_EmailAddress]
+    ON [dbo].[ReportRecipients] ( [RecipientEmailAddress] ASC )
 WITH (
     PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, 
     ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
@@ -39,7 +37,7 @@ GO
 -- check constraint on RecipientEmailAddress - allowed values are properly formed company email addresses
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
 	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' 
-							AND RecipientEmailAddress LIKE '%_@mycompany.com')
+                                                    AND RecipientEmailAddress LIKE '%_@lgassetservices.ie')
 GO
 
 -- default constraint on RecordStatus = "A"

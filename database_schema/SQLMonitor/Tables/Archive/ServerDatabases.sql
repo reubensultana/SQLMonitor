@@ -1,4 +1,4 @@
-USE [SQLMonitor]
+USE [SQLMonitorArchive]
 GO
 
 IF OBJECT_ID('[Archive].[ServerDatabases]') IS NOT NULL
@@ -27,7 +27,7 @@ CREATE TABLE [Archive].[ServerDatabases](
     [IsTrustworthy] [bit] NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,        -- record status - used to determine if the record is active or not
     [RecordCreated] [datetime2] (0) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [ARCHIVE]
+) ON [TABLES]
 GO
 
 
@@ -36,7 +36,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[Archive]
 ALTER TABLE [Archive].[ServerDatabases]
 ADD  CONSTRAINT [PK_ServerDatabases_Archive] PRIMARY KEY CLUSTERED ([ServerDatabaseID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [ARCHIVE]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
 GO
 
 

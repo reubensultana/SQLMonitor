@@ -13,6 +13,10 @@ IF NOT EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'Staging')
     EXEC sp_executesql N'CREATE SCHEMA [Staging] AUTHORIZATION [dbo];';
 GO
 
+IF NOT EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'Archive')
+    EXEC sp_executesql N'CREATE SCHEMA [Archive] AUTHORIZATION [dbo];';
+GO
+
 ----------
 USE [SQLMonitorArchive]
 GO

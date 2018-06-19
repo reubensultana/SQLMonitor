@@ -96,17 +96,10 @@ BEGIN
 END
 GO
 
--- EXEC [SQLMonitor].[Reporting].[uspListFailedLogins]
--- EXEC [SQLMonitor].[Reporting].[uspListFailedLogins] '2017-11-22'
--- EXEC [SQLMonitor].[Reporting].[uspListFailedLogins] '2017-11-22', 'CFSDGLT24SQL01'
-
-
-
-
-
---bcp "EXEC [SQLMonitor].[Reporting].[uspListFailedLogins];" queryout "C:\TEMP\FailedLogins\FailedLogins_20171122.txt" -S "STGDGLITISQL01" -T -c -k -t"|"
---bcp "EXEC [SQLMonitor].[Reporting].[uspListFailedLogins] '2017-11-22';" queryout "C:\TEMP\FailedLogins\FailedLogins_20171122.txt" -S "STGDGLITISQL01" -T -c -k -t"|"
---For /F "Tokens=1-3 Delims=/:. " %d In ("%Date%") Do bcp "EXEC [SQLMonitor].[Reporting].[uspListFailedLogins];" queryout "C:\TEMP\FailedLogins\FailedLogins_%f%e%d.txt" -S "STGDGLITISQL01" -T -c -k -t"|"
+/*
+@ECHO OFF
+For /F "Tokens=1-3 Delims=/:. " %%d In ("%Date%") Do bcp "EXEC [SQLMonitor].[Reporting].[uspListFailedLogins];" queryout ".\_export\FailedLogins_%%f%%e%%d.txt" -S "%1" -T -c -k -t"|"
+*/
 
 USE [master]
 GO

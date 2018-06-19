@@ -104,6 +104,23 @@ BEGIN
     SET @DeletionDate = DATEADD(d, 0-@DaysParamValue, @CurrentDate);
 
     BEGIN TRY
+        -- start archive deletion process
+        IF (@DeletionDate IS NOT NULL)
+        BEGIN -- NULL check
+            SET @RecordsDeleted = 1; -- initialize
+            WHILE (@RecordsDeleted > 0) -- loop to break deletions into batches
+            BEGIN -- loop
+                BEGIN TRANSACTION
+                DELETE TOP (@DeleteBatchCount) FROM [' + @DestinationSchemaName + '].[' + [TABLE_NAME] + '] WHERE [RecordCreated] <= @DeletionDate;
+                SET @RecordsDeleted = @@ROWCOUNT;
+                -- commit the transaction. The CATCH block will not execute
+                COMMIT TRANSACTION;
+
+                IF (@RecordsDeleted > 0)
+                    RAISERROR(N''%d records deleted from ''''%s'''' archive table'', -1, -1, @RecordsDeleted, @TableName);
+                --SET @RecordsDeleted = 0;
+            END -- loop
+        END -- NULL check
         -- start data archival process
         IF (@ArchiveDate IS NOT NULL)
         BEGIN -- NULL check
@@ -137,23 +154,6 @@ BEGIN
 
                 SET @RecordsDeleted = 0;
                 SET @RecordsMoved = 0;
-            END -- loop
-        END -- NULL check
-        -- start archive deletion process
-        IF (@DeletionDate IS NOT NULL)
-        BEGIN -- NULL check
-            SET @RecordsDeleted = 1; -- initialize
-            WHILE (@RecordsDeleted > 0) -- loop to break deletions into batches
-            BEGIN -- loop
-                BEGIN TRANSACTION
-                DELETE TOP (@DeleteBatchCount) FROM [' + @DestinationSchemaName + '].[' + [TABLE_NAME] + '] WHERE [RecordCreated] <= @DeletionDate;
-                SET @RecordsDeleted = @@ROWCOUNT;
-                -- commit the transaction. The CATCH block will not execute
-                COMMIT TRANSACTION;
-
-                IF (@RecordsDeleted > 0)
-                    RAISERROR(N''%d records deleted from ''''%s'''' archive table'', -1, -1, @RecordsDeleted, @TableName);
-                --SET @RecordsDeleted = 0;
             END -- loop
         END -- NULL check
         -- commit uncommitted transactions (should never happen...)

@@ -24,11 +24,13 @@ BEGIN
         r.ReportID, r.ReportName, r.ReportType, r.ExecuteScript
         ,rr.RecipientName, rr.RecipientEmailAddress
         ,r.CreateChart
-    FROM [dbo].[Reports] r
+    FROM [dbo].[ReportSubscriptions] rs
+        INNER JOIN [dbo].[ReportRecipients] rr ON rs.ReportRecipient = rr.ReportRecipientID
         -- get only assigned reports, or all if wildcard is used
-        INNER JOIN [dbo].[ReportRecipients] rr ON ((r.ReportID = rr.ReportID) OR (rr.ReportID IS NULL AND r.ReportType NOT LIKE 'Custom%'))
+        INNER JOIN [dbo].[Reports] r ON ((r.ReportID = rs.ReportID) OR ((rs.ReportID IS NULL) AND (r.ReportType NOT LIKE 'Custom%')))
+        
     -- active reports and recipients
-    WHERE r.RecordStatus = 'A' AND rr.RecordStatus = 'A'
+    WHERE rs.RecordStatus = 'A' AND rr.RecordStatus = 'A' AND r.RecordStatus = 'A'
     -- limit to a specific type
     AND r.ReportType = @ReportType
     ORDER BY rr.SendingOrder, rr.RecipientName, r.ExecutionOrder;

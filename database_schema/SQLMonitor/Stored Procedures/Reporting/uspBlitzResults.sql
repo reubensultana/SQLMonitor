@@ -24,6 +24,7 @@ BEGIN
         ,br.[DatabaseName]
         ,br.[Details]
         ,br.[URL]
+    
     FROM [Monitor].[BlitzResults] br
         INNER JOIN [dbo].[MonitoredServers] ms ON br.[ServerName] = COALESCE(ms.[ServerAlias], ms.[ServerName])
     -- CheckID exclusions based on https://github.com/BrentOzarULTD/SQL-Server-First-Responder-Kit/blob/master/Documentation/sp_Blitz%20Checks%20by%20Priority.md
