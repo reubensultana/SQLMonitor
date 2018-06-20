@@ -120,6 +120,21 @@ BEGIN
                     RAISERROR(N''%d records deleted from ''''%s'''' archive table'', -1, -1, @RecordsDeleted, @TableName);
                 --SET @RecordsDeleted = 0;
             END -- loop
+
+            -- delete records in main table which exceed the @DeletionDate value
+            SET @RecordsDeleted = 1; -- initialize
+            WHILE (@RecordsDeleted > 0) -- loop to break deletions into batches
+            BEGIN -- loop
+                BEGIN TRANSACTION
+                DELETE TOP (@DeleteBatchCount) FROM [' + @SourceSchemaName + '].[' + [TABLE_NAME] + '] WHERE [RecordCreated] <= @DeletionDate;
+                SET @RecordsDeleted = @@ROWCOUNT;
+                -- commit the transaction. The CATCH block will not execute
+                COMMIT TRANSACTION;
+
+                IF (@RecordsDeleted > 0)
+                    RAISERROR(N''%d records deleted from ''''%s'''' main table'', -1, -1, @RecordsDeleted, @TableName);
+                --SET @RecordsDeleted = 0;
+            END -- loop
         END -- NULL check
         -- start data archival process
         IF (@ArchiveDate IS NOT NULL)
@@ -186,7 +201,7 @@ BEGIN
 END;
 '
     FROM cte_MainTables
-    ORDER BY [TABLE_NAME] ASC;
+    WHERE OBJECT_ID(@DestinationSchemaName + '.' + [TABLE_NAME]) IS NOT NULL;
 
     -- procedure to join them all
     WITH cte_MainTables AS (
@@ -214,11 +229,13 @@ BEGIN
     EXEC [' + @DestinationSchemaName + '].[usp_Mantain_' + [TABLE_NAME] + '];'
             FROM cte_MainTables p2
             WHERE p2.[TABLE_SCHEMA] = p1.[TABLE_SCHEMA]
+            AND OBJECT_ID(@DestinationSchemaName + '.' + p2.[TABLE_NAME]) IS NOT NULL
             ORDER BY [TABLE_NAME]
             FOR XML PATH(''), TYPE
         ).value('.', 'varchar(max)') AS ObjectNames
         FROM cte_MainTables p1
-    GROUP BY [TABLE_SCHEMA]
+        WHERE OBJECT_ID(@DestinationSchemaName + '.' + [TABLE_NAME]) IS NOT NULL
+        GROUP BY [TABLE_SCHEMA]
     ) + 
 '
 END
