@@ -142,12 +142,13 @@ ForEach ($script In $filelist) {
     if ($fileExists) {
         $sql = Get-Content -Path $scriptexecpath -Raw
         "{0} : Running script: {1}" -f $(Get-Date -Format "HH:mm:ss"), $scriptname
-        Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $sql
+        try { Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $sql }
+        catch { break } # exit the ForEach on error
     }
 }
 
 "{0} : ---------------------------------------------------------------------------" -f $(Get-Date -Format "HH:mm:ss")
-"{0} : All scripts deployed" -f $(Get-Date -Format "HH:mm:ss")
+"{0} : Script execution complete" -f $(Get-Date -Format "HH:mm:ss")
 
 # deallocate variables
 $ServerInstance = $null
