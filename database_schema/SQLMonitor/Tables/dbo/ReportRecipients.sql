@@ -37,7 +37,8 @@ GO
 -- check constraint on RecipientEmailAddress - allowed values are properly formed company email addresses
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
 	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' 
-                                                    AND RecipientEmailAddress LIKE '%_@lgassetservices.ie')
+                                                    -- AND RecipientEmailAddress LIKE '%_@mycompany.com'
+						       )
 GO
 
 -- default constraint on RecordStatus = "A"
