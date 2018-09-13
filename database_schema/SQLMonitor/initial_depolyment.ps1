@@ -31,6 +31,7 @@ $filelist.Add("\Tables\dbo\Profile.sql") > $null
 $filelist.Add("\Tables\dbo\SystemParams.sql") > $null
 $filelist.Add("\Tables\dbo\ReportRecipients.sql") > $null
 $filelist.Add("\Tables\dbo\Reports.sql") > $null
+$filelist.Add("\Tables\dbo\ReportSubscriptions.sql") > $null
 # -----
 $filelist.Add("\Tables\Monitor\BlitzResults.sql") > $null
 $filelist.Add("\Tables\Monitor\DatabaseBackupHistory.sql") > $null
