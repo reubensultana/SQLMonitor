@@ -18,6 +18,7 @@ $filelist = New-Object System.Collections.ArrayList
 $filelist.Add("\create_database.sql") > $null
 $filelist.Add("\create_database_archive.sql") > $null
 $filelist.Add("\Tables\dbo\DatabaseLog.sql") > $null
+$filelist.Add("\Tables\dbo\DatabaseLog_Archive.sql") > $null
 $filelist.Add("\Database Triggers\ddlDatabaseTriggerLog.sql") > $null
 $filelist.Add("\Database Triggers\ddlDatabaseTriggerLog_Archive.sql") > $null
 $filelist.Add("\Security\schemas.sql") > $null
