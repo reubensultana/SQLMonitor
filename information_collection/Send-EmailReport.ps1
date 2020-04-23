@@ -28,33 +28,33 @@ function Send-EmailReport {
     
     # Build the Send mail options
     # technique: Splatting using Hash Tables - see https://msdn.microsoft.com/powershell/reference/5.1/Microsoft.PowerShell.Core/about/about_Splatting
-    $options = @{}
+    $Options = @{}
     
-    $options.Add("SmtpServer", $SmtpServer)
-    $options.Add("Port", $Port)
-    $options.Add("From", $FromList)
-    $options.Add("To", $ToList.split(','))
-    $options.Add("Subject", $Subject)
-    $options.Add("Body", $BodyText)
-    $options.Add("BodyAsHTML", $null)
+    $Options.Add("SmtpServer", $SmtpServer)
+    $Options.Add("Port", $Port)
+    $Options.Add("From", $FromList)
+    $Options.Add("To", $ToList.split(','))
+    $Options.Add("Subject", $Subject)
+    $Options.Add("Body", $BodyText)
+    $Options.Add("BodyAsHTML", $null)
 
     if ($CcList -ne "") {
-        $options.Add("CC", $CcList.split(','))
+        $Options.Add("CC", $CcList.split(','))
     }
 
     if ($AttachmentFile -ne "" -and $AttachmentFile -ne $null) {
-        $options.Add("Attachments", $AttachmentFile)
+        $Options.Add("Attachments", $AttachmentFile)
     }
 
     
     try {
         $ErrorActionPreference = "Stop";
-        Send-MailMessage @options
+        Send-MailMessage $Options
         # NOTE: This cmdlet does not generate any output.
         Start-Sleep -Seconds 5
         }
     catch{
-        # out-file $global:logFileName -Append
+        # Out-File $global:logFileName -Append
         }
     finally {
         $ErrorActionPreference = "Continue"; 
@@ -77,20 +77,20 @@ function Build-EmailReport {
         [xml]$ConfigFile = Get-Content $SettingsFile
 
         # --------------------------------------------------------------------------------
-        $ServerInstance = $ConfigFile.Settings.DatabaseConnection.ServerInstance
-        $Database = $ConfigFile.Settings.DatabaseConnection.Database
+        [string] $ServerInstance = $ConfigFile.Settings.DatabaseConnection.ServerInstance
+        [string] $Database = $ConfigFile.Settings.DatabaseConnection.Database
 
-        $SmtpServer = $ConfigFile.Settings.EmailParams.SmtpServer
-        $Port = $ConfigFile.Settings.EmailParams.TCPPort
+        [string] $SmtpServer = $ConfigFile.Settings.EmailParams.SmtpServer
+        [string] $Port = $ConfigFile.Settings.EmailParams.TCPPort
         
-        $EmailSubject = $ConfigFile.Settings.EmailParams.EmailSubject
+        [string] $EmailSubject = $ConfigFile.Settings.EmailParams.EmailSubject
         $EmailSubject = $EmailSubject -f $ReportType
-        $EmailFrom = $ConfigFile.Settings.EmailParams.EmailFrom
+        [string] $EmailFrom = $ConfigFile.Settings.EmailParams.EmailFrom
         
-        $TableStyle = $ConfigFile.Settings.ReportStyleSheet.TableStyle
-        $TableHeaderSyle = $ConfigFile.Settings.ReportStyleSheet.TableHeaderSyle
-        $TableDataSyle = $ConfigFile.Settings.ReportStyleSheet.TableDataSyle
-        $HTMLStyle = "
+        [string] $TableStyle = $ConfigFile.Settings.ReportStyleSheet.TableStyle
+        [string] $TableHeaderSyle = $ConfigFile.Settings.ReportStyleSheet.TableHeaderSyle
+        [string] $TableDataSyle = $ConfigFile.Settings.ReportStyleSheet.TableDataSyle
+        [string] $HTMLStyle = "
 <style>
     TABLE{0}
     TH{1}
@@ -100,14 +100,14 @@ function Build-EmailReport {
 
         # --------------------------------------------------------------------------------
         # get profile (incl, script names and scripts)
-        $sql = "EXEC dbo.uspGetReports '{0}';" -f $ReportType
-        $Reports = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout 30
+        [string] $Sql = "EXEC dbo.uspGetReports '{0}';" -f $ReportType
+        $Reports = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -QueryTimeout 30
         
         # store the number of rows returned in a variable for use later
         $OuterRowCount = $Reports.Table.Rows.Count
 
         # clear
-        $sql = $null
+        $Sql = $null
 
         if ($OuterRowCount -gt 0) {
             # initialize variables
@@ -138,11 +138,11 @@ function Build-EmailReport {
                         # append results to email body
                         # limit to the top 500 rows
                         if ($InnerRowCount -gt 0) {
-                            $EmailBody += $ReportResult | SELECT * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors -First 500 | ConvertTo-Html -As Table -PreContent "<h2>$ReportName</h2>" | Out-String 
+                            $EmailBody += $ReportResult | Select-Object * -ExcludeProperty RowError, RowState, Table, ItemArray, HasErrors -First 500 | ConvertTo-Html -As Table -PreContent "<h2>$ReportName</h2>" | Out-String 
 
                             if ($CreateChart -eq 1) {
-                                # call the Create-ChartImage function and use the returned image path as the $AttachmentFilePath value
-                                $AttachmentFilePath = Create-ChartImage -ReportName $ReportName -FullDataSource $ReportResult
+                                # call the New-ChartImage function and use the returned image path as the $AttachmentFilePath value
+                                $AttachmentFilePath = New-ChartImage -ReportName $ReportName -FullDataSource $ReportResult
                             }
                         }
                     } # data retrieval check
@@ -184,7 +184,7 @@ Error message: $ErrorMessage"
 }
 
 
-function Create-ChartImage {
+function New-ChartImage {
     param (
     [Parameter(Position=0, Mandatory=$true)]  [string]$ReportName,      # the report name
     [Parameter(Position=1, Mandatory=$true)]  [PSObject[]]$FullDataSource   # the data source
@@ -195,15 +195,15 @@ function Create-ChartImage {
     [void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
 
     # chart object
-    $chart1 = New-Object System.Windows.Forms.DataVisualization.Charting.Chart
-    $chart1.Width = 1024
-    $chart1.Height = 768
-    $chart1.BackColor = [System.Drawing.Color]::White
+    $Chart1 = New-Object System.Windows.Forms.DataVisualization.Charting.Chart
+    $Chart1.Width = 1024
+    $Chart1.Height = 768
+    $Chart1.BackColor = [System.Drawing.Color]::White
 
     # title 
-    [void]$chart1.Titles.Add($ReportName)
-    $chart1.Titles[0].Font = "Verdana,13pt"
-    $chart1.Titles[0].Alignment = "topLeft"
+    [void]$Chart1.Titles.Add($ReportName)
+    $Chart1.Titles[0].Font = "Verdana,13pt"
+    $Chart1.Titles[0].Alignment = "topLeft"
 
     # axis titles
     foreach ($DataRow in $FullDataSource) {
@@ -214,33 +214,33 @@ function Create-ChartImage {
     }
 
     # chart area 
-    $chartarea = New-Object System.Windows.Forms.DataVisualization.Charting.ChartArea
-    $chartarea.Name = "ChartArea1"
-    $chartarea.AxisY.Title = $AxisYTitle
-    $chartarea.AxisX.Title = $AxisXTitle
-    #$chartarea.AxisY.Interval = 10000
-    #$chartarea.AxisX.Interval = 7  # Assuming that X is always a date; set weekly intervals
-    $chartarea.AxisY.IsStartedFromZero = $false
-    $chartarea.AxisY.LabelStyle.Format = "#,##0"  # Assuming that Y is always a number
-    [void]$chart1.ChartAreas.Add($chartarea)
+    $ChartArea = New-Object System.Windows.Forms.DataVisualization.Charting.ChartArea
+    $ChartArea.Name = "ChartArea1"
+    $ChartArea.AxisY.Title = $AxisYTitle
+    $ChartArea.AxisX.Title = $AxisXTitle
+    #$ChartArea.AxisY.Interval = 10000
+    #$ChartArea.AxisX.Interval = 7  # Assuming that X is always a date; set weekly intervals
+    $ChartArea.AxisY.IsStartedFromZero = $false
+    $ChartArea.AxisY.LabelStyle.Format = "#,##0"  # Assuming that Y is always a number
+    [void]$Chart1.ChartAreas.Add($ChartArea)
 
     # legend 
-    $legend = New-Object system.Windows.Forms.DataVisualization.Charting.Legend
-    $legend.name = "Legend1"
-    [void]$chart1.Legends.Add($legend)
+    $Legend = New-Object system.Windows.Forms.DataVisualization.Charting.Legend
+    $Legend.name = "Legend1"
+    [void]$Chart1.Legends.Add($Legend)
 
     # data series
     foreach ($DataRow in $FullDataSource) {
         $SeriesName = $DataRow.Item(1)
 
         try { 
-            [void]$chart1.Series.Add($SeriesName) 
-            $chart1.Series[$SeriesName].ChartType = "Line"
-            $chart1.Series[$SeriesName].BorderWidth  = 3
-            $chart1.Series[$SeriesName].IsVisibleInLegend = $true
-            $chart1.Series[$SeriesName].chartarea = "ChartArea1"
-            $chart1.Series[$SeriesName].Legend = "Legend1"
-            #$chart1.Series[$SeriesName].color = "#62B5CC"
+            [void]$Chart1.Series.Add($SeriesName) 
+            $Chart1.Series[$SeriesName].ChartType = "Line"
+            $Chart1.Series[$SeriesName].BorderWidth  = 3
+            $Chart1.Series[$SeriesName].IsVisibleInLegend = $true
+            $Chart1.Series[$SeriesName].chartarea = "ChartArea1"
+            $Chart1.Series[$SeriesName].Legend = "Legend1"
+            #$Chart1.Series[$SeriesName].color = "#62B5CC"
         }
         catch { 
             # do nothing except capture the error message
@@ -253,7 +253,7 @@ function Create-ChartImage {
     }
 
     # data source
-    $FullDataSource | ForEach-Object { [void]$chart1.Series[$_.Item(1)].Points.addxy( $_.Item(3), $_.Item(2)) }
+    $FullDataSource | ForEach-Object { [void]$Chart1.Series[$_.Item(1)].Points.addxy( $_.Item(3), $_.Item(2)) }
 
     # save chart
     #$CurrentDate = (Get-Date).ToString("yyyyMMdd_hhmmss")
@@ -263,7 +263,7 @@ function Create-ChartImage {
     $Id = [GUID]::NewGuid()
     $ImageFilePath = "$CurrentPath\_trash\$Id.png"
     if (Test-Path("$CurrentPath\_trash")) {
-        $chart1.SaveImage($ImageFilePath,"png")
+        $Chart1.SaveImage($ImageFilePath,"png")
     }
     Return $ImageFilePath # Attachment File Path
 }

@@ -13,20 +13,20 @@ param([String]$ServerName = '',
 #
 
 # set properties on the console window
-$console = $host.UI.RawUI
-$console.ForegroundColor = "white"
-$console.BackgroundColor = "darkblue"
-$console.WindowTitle = "SQL Monitor Data Collection Processes"
+$Console = $host.UI.RawUI
+$Console.ForegroundColor = "white"
+$Console.BackgroundColor = "darkblue"
+$Console.WindowTitle = "SQL Monitor Data Collection Processes"
 <#
-$size = $console.WindowSize
-$size.Width = 120
-$size.Height = 40
-$console.WindowSize = $size
+$Size = $Console.WindowSize
+$Size.Width = 120
+$Size.Height = 40
+$Console.WindowSize = $Size
 
-$buffer = $console.BufferSize
-$buffer.Width = 120
-$buffer.Height = 2000
-$console.BufferSize = $buffer
+$Buffer = $Console.BufferSize
+$Buffer.Width = 120
+$Buffer.Height = 2000
+$Console.BufferSize = $Buffer
 #>
 # end properties
 
@@ -41,9 +41,9 @@ $CurrentPath = $PSScriptRoot
 
 #AreYouSure function. Allows user to select y or n when asked to exit. Y exits and N returns to main menu.  
 function AreYouSure {
-    $areyousure = Read-Host "Are you sure you want to exit? (y/n)"
-    if     ($areyousure -eq "y"){Clear-Host; Exit}
-    elseif ($areyousure -eq "n"){MainMenu}
+    [string] $AreYouSure = Read-Host "Are you sure you want to exit? (y/n)"
+    if     ($AreYouSure -eq "y"){Clear-Host; Exit}
+    elseif ($AreYouSure -eq "n"){MainMenu}
     else {Write-Host -ForegroundColor Red "Invalid Selection";
           AreYouSure
          }
@@ -55,14 +55,14 @@ function AreYouSure {
 function MainMenu {
     # Import settings from config file
     # check if config file exists
-    $SettingsFile = "$($CurrentPath)\Settings.xml"
+    [string] $SettingsFile = "$($CurrentPath)\Settings.xml"
     if (Test-Path($SettingsFile)) {
         [xml]$ConfigFile = Get-Content $SettingsFile
 
-        $ServerInstance = $ConfigFile.Settings.DatabaseConnection.ServerInstance
-        $Database = $ConfigFile.Settings.DatabaseConnection.Database
-        $ProfileName = $ConfigFile.Settings.DatabaseConnection.ProfileName
-		$QueryTimeout = $ConfigFile.Settings.DatabaseConnection.QueryTimeout
+        [string] $ServerInstance = $ConfigFile.Settings.DatabaseConnection.ServerInstance
+        [string] $Database = $ConfigFile.Settings.DatabaseConnection.Database
+        [string] $ProfileName = $ConfigFile.Settings.DatabaseConnection.ProfileName
+		[int] $QueryTimeout = $ConfigFile.Settings.DatabaseConnection.QueryTimeout
 
         Clear-Host
         
@@ -83,25 +83,25 @@ function MainMenu {
         Write-Host "  10. Maintain Archive"
         Write-Host ""
         Write-Host "---------------------------------------------------------"
-        $answer = Read-Host "Please choose an option"
+        $Answer = Read-Host "Please choose an option"
 
-        if     ($answer -eq 0) {AreYouSure}
-        elseif ($answer -eq 1) {.\Test-NetworkConnection.ps1 -ServerName $ServerInstance -DatabaseName $Database;  Pause; MainMenu}
-        elseif ($answer -eq 2) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Annual" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
-        elseif ($answer -eq 3) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Monthly" -QueryTimeout $QueryTimeout; Pause; MainMenu}
-        elseif ($answer -eq 4) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Weekly" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
-        elseif ($answer -eq 5) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Daily" -QueryTimeout $QueryTimeout;   Pause; MainMenu}
-        elseif ($answer -eq 6) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Hourly" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
-        elseif ($answer -eq 7) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Minute" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
-        elseif ($answer -eq 8) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Manual" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
-        elseif ($answer -eq 9) {Pause; MainMenu}
-        elseif ($answer -eq 10) {.\Invoke-ArchiveMaintenance.ps1 -ServerName $ServerInstance -DatabaseName $Database; Pause; MainMenu}
+        if     ($Answer -eq 0) {AreYouSure}
+        elseif ($Answer -eq 1) {.\Test-NetworkConnection.ps1 -ServerName $ServerInstance -DatabaseName $Database;  Pause; MainMenu}
+        elseif ($Answer -eq 2) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Annual" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($Answer -eq 3) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Monthly" -QueryTimeout $QueryTimeout; Pause; MainMenu}
+        elseif ($Answer -eq 4) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Weekly" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($Answer -eq 5) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Daily" -QueryTimeout $QueryTimeout;   Pause; MainMenu}
+        elseif ($Answer -eq 6) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Hourly" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($Answer -eq 7) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Minute" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($Answer -eq 8) {.\Get-ServerInfo.ps1 -ServerName $ServerInstance -DatabaseName $Database -MonitorProfile $ProfileName -MonitorProfileType "Manual" -QueryTimeout $QueryTimeout;  Pause; MainMenu}
+        elseif ($Answer -eq 9) {Pause; MainMenu}
+        elseif ($Answer -eq 10) {.\Invoke-ArchiveMaintenance.ps1 -ServerName $ServerInstance -DatabaseName $Database; Pause; MainMenu}
         else {
             Write-Host -ForegroundColor Red "Invalid selection"
             Start-Sleep 3
             MainMenu
         }
-        $ProfileType = $null
+        # $ProfileType = $null
         $ServerInstance = $null
         $Database = $null
         $ProfileName = $null

@@ -1,6 +1,22 @@
 param(
-	[Parameter(Mandatory=$true)] [String]$ServerName
+    [Parameter(Mandatory=$true)] [String] $ServerName,
+    [Parameter(Mandatory=$false)] [PSCredential] $SQLCredential
 )
+<#
+[String] $Username = "sa";
+[SecureString] $Password = ConvertTo-SecureString 'P@ssw0rd123!' -AsPlainText -Force
+$MyCredential = New-Object System.Management.Automation.PSCredential ($Username, $Password)
+
+NOTE:
+To see the password, you'll need to use the Password property on the object that GetNetworkCredential() returns.
+> $MyCredential.UserName
+> sa
+> $MyCredential.Password
+> System.Security.SecureString
+> $MyCredential.GetNetworkCredential().Password
+> P@ssw0rd123!
+The password that's returned should be the same password that you provided early to the PSCredential constructor.
+#>
 
 # Clear-Host
 
@@ -144,7 +160,12 @@ ForEach ($script In $filelist) {
     if ($fileExists) {
         $sql = Get-Content -Path $scriptexecpath -Raw
         "{0} : Running script: {1}" -f $(Get-Date -Format "HH:mm:ss"), $scriptname
-        try { Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $sql }
+        try { 
+            # Windows Authentication
+            if ($null -eq $SQLCredential) { Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $sql }
+            # SQL Authentication
+            else { Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $sql -Credential $SQLCredential }
+            }
         catch { break } # exit the ForEach on error
     }
 }

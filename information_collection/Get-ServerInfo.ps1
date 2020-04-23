@@ -46,21 +46,21 @@ function Get-ServerInfo() {
 	"{0} : Query Timeout:     {1}" -f $(Get-Date -Format "HH:mm:ss"), $QueryTimeout
     "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
     
-    # $scriptroot = "$($CurrentPath)\scripts\"
-    $scriptroot = ".\scripts\"
+    # $ScriptRoot = "$($CurrentPath)\scripts\"
+    $ScriptRoot = ".\scripts\"
 
     # get profile (incl, script names and scripts)
-    $sql = "EXEC dbo.uspGetProfile '{0}', '{1}';" -f $ProfileName, $ProfileType
-    $scripts = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
+    $Sql = "EXEC dbo.uspGetProfile '{0}', '{1}';" -f $ProfileName, $ProfileType
+    $Scripts = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -QueryTimeout $QueryTimeout
 
     # get list of servers
-    $sql = "EXEC dbo.uspGetServers;"
-    $ServerInstances = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
+    $Sql = "EXEC dbo.uspGetServers;"
+    $ServerInstances = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -QueryTimeout $QueryTimeout
 	
     # clear
-    $sql = $null
+    $Sql = $null
 
-	if ($scripts.Table.Rows.Count -gt 0) {
+	if ($Scripts.Table.Rows.Count -gt 0) {
         Foreach ($Server in $ServerInstances) {
             $ServerName = $Server.ServerName
             $TcpPort = $Server.SqlTcpPort
@@ -82,52 +82,52 @@ function Get-ServerInfo() {
 
             # check if the connection test was successful
             if (($TestConnection -eq $true) -and ($TestAuthentication -eq $true)) {
-                Foreach ($script in $scripts) {
-                    $scriptname = $scriptroot + $script.ScriptName + ".sql"
-                    $tablename = $script.ScriptName
-                    $intervalminutes = $script.IntervalMinutes
+                Foreach ($Script in $Scripts) {
+                    $ScriptName = $ScriptRoot + $Script.ScriptName + ".sql"
+                    $TableName = $Script.ScriptName
+                    $IntervalMinutes = $Script.IntervalMinutes
                     # the script that should be executed, retrieved from the database
-                    $executescript = $result.ExecuteScript
+                    $ExecuteScript = $Result.ExecuteScript
 
                     # check that the script file exists
-                    if (Test-Path $scriptname -PathType Leaf) {
+                    if (Test-Path $ScriptName -PathType Leaf) {
                         # check when the script was last run and compare to the pre-defined value for how many minutes should have elapsed
                         # this will avoid that say, a script that should run Monthly is run multiple times during the month
                         # the COALESCE function will either return the value of the most recent RecordCreated column for that server OR the value 600,000 (which is more than 1 year in minutes)
-                        $sql = "SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), CURRENT_TIMESTAMP), 600000) AS [MinutesElapsed] FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
-                        $result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
-                        $minuteselapsed = $result.MinutesElapsed
-                        $result = $null
+                        $Sql = "SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), CURRENT_TIMESTAMP), 600000) AS [MinutesElapsed] FROM $($ProfileName).$($TableName) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
+                        $Result = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -QueryTimeout $QueryTimeout
+                        $MinutesElapsed = $Result.MinutesElapsed
+                        $Result = $null
 
                         # compare values and handle processing (greater than or equal to comparison)
-                        if ($minuteselapsed -ge $intervalminutes) {
+                        if ($MinutesElapsed -ge $IntervalMinutes) {
 
                             # run any script marked for pre-execution
-                            $preexecutescript = $script.PreExecuteScript
+                            $PreExecuteScript = $Script.PreExecuteScript
                             # NOTE: if NOT IsNullOrEmpty...
-                            if (![string]::IsNullOrEmpty($preexecutescript)) {
+                            if (![string]::IsNullOrEmpty($PreExecuteScript)) {
                                 # replace the parameter with the server name
-                                $preexecutescript = $preexecutescript -f $ServerName
+                                $PreExecuteScript = $PreExecuteScript -f $ServerName
                                 # execute the query against the monitoring database
-                                $preexecuteresult = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $preexecutescript -QueryTimeout $QueryTimeout
+                                $PreExecuteResult = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $PreExecuteScript -QueryTimeout $QueryTimeout
                             }
 
-                            "{0} : Running script:    {1}" -f $(Get-Date -Format "HH:mm:ss"), $scriptname
+                            "{0} : Running script:    {1}" -f $(Get-Date -Format "HH:mm:ss"), $ScriptName
                             # run the script retrieved from the database, otherwise load it from the file
-                            if ([string]::IsNullOrEmpty($executescript)) {
-                                $sql = Get-Content -Path $scriptname -Raw
+                            if ([string]::IsNullOrEmpty($ExecuteScript)) {
+                                $Sql = Get-Content -Path $ScriptName -Raw
                             }
                             else {
-                                $sql = $executescript
+                                $Sql = $ExecuteScript
                             }
                             # replace the script parameter with the result obtained
                             # NOTE: if NOT IsNullOrEmpty...
-                            if (![string]::IsNullOrEmpty($preexecuteresult)) {
-                                $sql = $sql -f $preexecuteresult.Output
+                            if (![string]::IsNullOrEmpty($PreExecuteResult)) {
+                                $Sql = $Sql -f $PreExecuteResult.Output
                             }
                             # run and store the output in a data table variable
                             try {
-                                $result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $sql.ToString() -QueryTimeout $QueryTimeout
+                                $Result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $Sql.ToString() -QueryTimeout $QueryTimeout
                                 $ErrorMessage = $null
                             }
                             catch {
@@ -137,7 +137,7 @@ function Get-ServerInfo() {
 
                             # check if the data retrieval was successful
                             if ([string]::IsNullOrEmpty($ErrorMessage)) {
-                                $dt = $result | Out-DataTable
+                                $dt = $Result | Out-DataTable
                                 $dtRowCount = $dt.Rows.Count
 
                                 if ($dtRowCount -gt 0) {
@@ -151,26 +151,26 @@ function Get-ServerInfo() {
                                 }
 
                                 # update the status for older data
-                                $sql = "IF EXISTS (SELECT 1 FROM $($ProfileName).$($tablename) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A') UPDATE $($ProfileName).$($tablename) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
-                                Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -QueryTimeout $QueryTimeout
+                                $Sql = "IF EXISTS (SELECT 1 FROM $($ProfileName).$($TableName) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A') UPDATE $($ProfileName).$($TableName) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
+                                Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -QueryTimeout $QueryTimeout
 
                                 # write data extracted from remote server to the central table
                                 if ($dtRowCount -gt 0) {
-                                    Write-DataTable -Data $dt -ServerInstance $ServerInstance -Database $Database -TableName "$($ProfileName).$($tablename)"
+                                    Write-DataTable -Data $dt -ServerInstance $ServerInstance -Database $Database -TableName "$($ProfileName).$($TableName)"
                                 }
                             }
                             # clean up
                             $ErrorMessage = $null
-                            $executescript = $null
-                            $result = $null
+                            $ExecuteScript = $null
+                            $Result = $null
                             $dt = $null
                             $dtRowCount = 0
-                            $preexecutescript = ""
-                            $preexecuteresult = $null
+                            $PreExecuteScript = ""
+                            $PreExecuteResult = $null
                         }
                         # script has been executed against the current server in the past N minutes
                         else {
-                            $ts =  [timespan]::fromminutes($minuteselapsed)
+                            $ts =  [timespan]::fromminutes($MinutesElapsed)
                             $age = New-Object DateTime -ArgumentList $ts.Ticks
 
                             $msg = "" 
@@ -184,18 +184,18 @@ function Get-ServerInfo() {
 
                             $msg += " ago"
 
-                            "{0} : Script {1} was last run$msg." -f $(Get-Date -Format "HH:mm:ss"), $scriptname
+                            "{0} : Script {1} was last run$msg." -f $(Get-Date -Format "HH:mm:ss"), $ScriptName
                         }
-                    }
+                    } # if
                     # script file does not exist
                     else {
-                        "{0} : Script {1} not found." -f $(Get-Date -Format "HH:mm:ss"), $scriptname
+                        "{0} : Script {1} not found." -f $(Get-Date -Format "HH:mm:ss"), $ScriptName
                     }
-                    $scriptname = $null
-                    $tablename = $null
-                    $intervalminutes = $null
-                }
-            }
+                    $ScriptName = $null
+                    $TableName = $null
+                    $IntervalMinutes = $null
+                } # foreach
+            } # if
             "{0} : Completed server:  {1}" -f $(Get-Date -Format "HH:mm:ss"), $InstanceName
             "{0} : ------------------------------ " -f $(Get-Date -Format "HH:mm:ss")
             $ServerName = $null

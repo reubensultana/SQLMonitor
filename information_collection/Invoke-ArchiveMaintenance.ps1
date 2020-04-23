@@ -34,11 +34,11 @@ function Invoke-ArchiveMaintenance () {
     "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
     
     # execute archiving stored procedure
-    $sql = "EXEC [Archive].[usp_Mantain_Archive];"
-    $MantainArchive = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $sql -Verbose -QueryTimeout $QueryTimeout
+    $Sql = "EXEC [Archive].[usp_Mantain_Archive];"
+    $MantainArchive = Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -Verbose -QueryTimeout $QueryTimeout
 
     # clear
-    $sql = $null
+    $Sql = $null
     $MantainArchive = $null
     "{0} : Done" -f $(Get-Date -Format "HH:mm:ss")
     "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
