@@ -128,13 +128,15 @@ CREATE TABLE #hotfixes (
 
 -- Source: http://sqlserverbuilds.blogspot.co.uk/
 INSERT INTO #hotfixes (SQLServer, LatestHotfix, ServicePack)
-    SELECT '2000',      '8.00.2283',    'SP4' UNION ALL 
-    SELECT '2005',      '9.00.5324',    'SP4' UNION ALL
-    SELECT '2008',      '10.0.6000.29', 'SP4' UNION ALL
-    SELECT '2008 R2',   '10.50.6000.34','SP3' UNION ALL
-    SELECT '2012',      '11.0.6020.0',  'SP3' UNION ALL
-    SELECT '2014',      '12.0.5000.0',  'SP2' UNION ALL
-    SELECT '2016',      '13.0.1601.5',  'RTM';
+    SELECT '2000',      '8.0.2305',     'SP4'      UNION ALL 
+    SELECT '2005',      '9.0.5324',     'SP4'      UNION ALL
+    SELECT '2008',      '10.0.6000.29', 'SP4'      UNION ALL
+    SELECT '2008 R2',   '10.50.6000.34','SP3'      UNION ALL
+    SELECT '2012',      '11.0.7001.0',  'SP4'      UNION ALL
+    SELECT '2014',      '12.0.6329.1',  'SP3+CU4'  UNION ALL
+    SELECT '2016',      '13.0.5850.14', 'SP2_CU15' UNION ALL
+    SELECT '2017',      '14.0.3356.20', 'RTM+CU22' UNION ALL
+    SELECT '2019',      '15.0.4073.23', 'RTM+CU8' ;
 
 CREATE TABLE #Serverinfo (
     [InstanceName] VARCHAR (128),
@@ -161,6 +163,9 @@ SELECT
 		WHEN @ProductVersion LIKE '10.5%' THEN '2008 R2'
         WHEN @ProductVersion LIKE '11.0%' THEN '2012'
         WHEN @ProductVersion LIKE '12.0%' THEN '2014'
+        WHEN @ProductVersion LIKE '13.0%' THEN '2016'
+        WHEN @ProductVersion LIKE '14.0%' THEN '2017'
+        WHEN @ProductVersion LIKE '15.0%' THEN '2019'
 	END AS 'ServerEdition';
 
 SET @msbresult = (SELECT SQLServerVersion FROM #Serverinfo)
@@ -269,9 +274,9 @@ END
 --04.3	SQL Server Settings
 ---------------------------
 
---3.1 - Disable the �Named Pipes� network protocol
+--3.1 - Disable the "Named Pipes" network protocol
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)
-VALUES ('3.1', @instancename, 'Disable the �Named Pipes� network protocol', 'Disable the �Named Pipes� network protocol', 'N/A', -1);
+VALUES ('3.1', @instancename, 'Disable the "Named Pipes" network protocol', 'Disable the "Named Pipes" network protocol', 'N/A', -1);
 
 --3.2 - Auto Restart SQL Server 
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)

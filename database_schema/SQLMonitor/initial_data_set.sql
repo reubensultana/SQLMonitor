@@ -787,13 +787,15 @@ GO
 INSERT INTO [dbo].[SystemParams] (
     [ParamName], [ParamValue], [ParamDescription], [RecordStatus], [RecordCreated])
 VALUES 
-	('SQLServer_BuildVersion_2005',	'9.00.5324.0', 'Latest build version for SQL Server 2005', 'A', CURRENT_TIMESTAMP),
-	('SQLServer_BuildVersion_2008', '10.00.6547.0', 'Latest build version for SQL Server 2008', 'A', CURRENT_TIMESTAMP),
-	('SQLServer_BuildVersion_2008R2', '10.50.6529.0', 'Latest build version for SQL Server 2008 R2', 'A', CURRENT_TIMESTAMP),
+	('SQLServer_BuildVersion_2000',	'8.0.2305.0', 'Latest build version for SQL Server 2000', 'A', CURRENT_TIMESTAMP),
+    ('SQLServer_BuildVersion_2005',	'9.0.5324.0', 'Latest build version for SQL Server 2005', 'A', CURRENT_TIMESTAMP),
+	('SQLServer_BuildVersion_2008', '10.0.6556.0', 'Latest build version for SQL Server 2008', 'A', CURRENT_TIMESTAMP),
+	('SQLServer_BuildVersion_2008R2', '10.50.6560.0', 'Latest build version for SQL Server 2008 R2', 'A', CURRENT_TIMESTAMP),
 	('SQLServer_BuildVersion_2012', '11.0.7001.0', 'Latest build version for SQL Server 2012',	'A', CURRENT_TIMESTAMP),
-	('SQLServer_BuildVersion_2014', '12.0.5557.0', 'Latest build version for SQL Server 2014',	'A', CURRENT_TIMESTAMP),
-	('SQLServer_BuildVersion_2016', '13.0.4457.0', 'Latest build version for SQL Server 2016',	'A', CURRENT_TIMESTAMP),
-    ('SQLServer_BuildVersion_2017', '14.0.3008.27', 'Latest build version for SQL Server 2017',	'A', CURRENT_TIMESTAMP)
+	('SQLServer_BuildVersion_2014', '12.0.6329.1', 'Latest build version for SQL Server 2014',	'A', CURRENT_TIMESTAMP),
+	('SQLServer_BuildVersion_2016', '13.0.5850.14', 'Latest build version for SQL Server 2016',	'A', CURRENT_TIMESTAMP),
+    ('SQLServer_BuildVersion_2017', '14.0.3356.20', 'Latest build version for SQL Server 2017',	'A', CURRENT_TIMESTAMP)
+    ('SQLServer_BuildVersion_2017', '15.0.4073.23', 'Latest build version for SQL Server 2019',	'A', CURRENT_TIMESTAMP)
 GO
 
 -- SELECT * FROM [dbo].[SystemParams] ORDER BY [ParamName]
