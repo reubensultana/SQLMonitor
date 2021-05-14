@@ -35,7 +35,7 @@ GO
 -- NOTE: Watch out for single quotes in the PreExecuteScript and ExecuteScript columns
 SELECT 
     ',(''' + ProfileName + ''',''' + ScriptName + ''',''' + CAST(ExecutionOrder AS varchar(10)) + ''',''' + ProfileType + ''',''' + 
-    COALESCE(PreExecuteScript, '') + ''',''' + COALESCE(ExecuteScript, '') + ''')'
+    COALESCE(REPLACE(PreExecuteScript, '''', ''''''), '') + ''',''' + COALESCE(REPLACE(ExecuteScript, '''', ''''''), '') + ''')'
 FROM [SQLMonitor].[dbo].[Profile]
 ORDER BY ProfileType, ExecutionOrder, ProfileName, ScriptName
 */
@@ -47,31 +47,32 @@ ORDER BY ProfileType, ExecutionOrder, ProfileName, ScriptName
 INSERT INTO [dbo].[Profile] (
     ProfileName, ScriptName, ExecutionOrder, ProfileType, PreExecuteScript, ExecuteScript )
 VALUES
-    ('Monitor','server_agentjobs','1','Daily','','')
-    ,('Monitor','database_backup_history','2','Daily','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = ''{0}'' AND [RecordStatus] = ''A'';','')
-    ,('Monitor','database_indexusagestats','3','Daily','USE [SQLMonitor]; TRUNCATE TABLE [Staging].[IndexUsageStats];','')
-    ,('Monitor','database_missingindexstats','4','Daily','USE [SQLMonitor]; TRUNCATE TABLE [Staging].[MissingIndexStats];','')
+    ('Monitor','ServerAgentJobs','1','Daily','','')
+    ,('Monitor','DatabaseBackupHistory','2','Daily','SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([StartDate]), 121), (CONVERT(varchar(7), DATEADD(month, -3, CURRENT_TIMESTAMP), 121)+''-01'')) AS [Output] FROM [Monitor].[DatabaseBackupHistory] WHERE [ServerName] = @ServerName AND [RecordStatus] = ''A'';','')
+    ,('Monitor','DatabaseIndexUsageStats','3','Daily','TRUNCATE TABLE [Staging].[DatabaseIndexUsageStats];','')
+    ,('Monitor','DatabaseMissingIndexStats','4','Daily','TRUNCATE TABLE [Staging].[DatabaseMissingIndexStats];','')
+    
+    ,('Monitor','ServerErrorLog','1','Hourly','SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = @ServerName;','')
+    
+    ,('Monitor','BlitzResults','0','Manual','DELETE FROM [Monitor].[BlitzResults] WHERE [ServerName] = @ServerName;','')
+    
+    ,('Monitor','ServerAgentJobsHistory','1','Minute','SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LastRunTime]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerAgentJobsHistory] WHERE [ServerName] = @ServerName AND [RecordStatus] = ''A'';','')
+    
+    ,('Monitor','ServerInfo','1','Monthly','','')
+    ,('Monitor','ServerLogins','2','Monthly','','')
+    ,('Monitor','ServerDatabases','3','Monthly','','')
+    ,('Monitor','ServerConfigurations','4','Monthly','','')
+    ,('Monitor','ServerServers','5','Monthly','','')
+    ,('Monitor','ServerTriggers','6','Monthly','','')
+    ,('Monitor','ServerEndpoints','7','Monthly','','')
+    ,('Monitor','ServerAgentConfig','8','Monthly','','')
+    ,('Monitor','DatabaseTableColumns','9','Monthly','DELETE FROM [Monitor].[DatabaseTableColumns] WHERE [ServerName] = @ServerName;','')
+    ,('Monitor','ServerMSB','10','Monthly','','')
 
-    ,('Monitor','server_errorlog','1','Hourly','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LogDate]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerErrorLog] WHERE [ServerName] = ''{0}'';','')
-    
-    ,('Monitor','blitz_results','0','Manual','USE [SQLMonitor]; DELETE FROM [Monitor].[BlitzResults] WHERE [ServerName] = ''{0}'';','')
-    
-    ,('Monitor','server_agentjobshistory','1','Minute','USE [SQLMonitor]; SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; SELECT COALESCE(CONVERT(varchar(25), MAX([LastRunTime]), 121), ''1753-01-01 00:00:00'') AS [Output] FROM [Monitor].[ServerAgentJobsHistory] WHERE [ServerName] = ''{0}'' AND [RecordStatus] = ''A'';','')
-    
-    ,('Monitor','server_info','1','Monthly','','')
-    ,('Monitor','server_logins','2','Monthly','','')
-    ,('Monitor','server_databases','3','Monthly','','')
-    ,('Monitor','server_configurations','4','Monthly','','')
-    ,('Monitor','server_servers','5','Monthly','','')
-    ,('Monitor','server_triggers','6','Monthly','','')
-    ,('Monitor','server_endpoints','7','Monthly','','')
-    ,('Monitor','server_agentconfig','8','Monthly','','')
-    ,('Monitor','database_table_columns','9','Monthly','USE [SQLMonitor]; DELETE FROM [Monitor].[DatabaseTableColumns] WHERE [ServerName] = ''{0}'';','')
-    
-    ,('Monitor','database_configurations','1','Weekly','','')
-    ,('Monitor','database_users','2','Weekly','','')
-    ,('Monitor','database_tables','3','Weekly','','')
-    ,('Monitor','server_freespace','4','Weekly','','')
+    ,('Monitor','DatabaseConfigurations','1','Weekly','','')
+    ,('Monitor','DatabaseUsers','2','Weekly','','')
+    ,('Monitor','DatabaseTables','3','Weekly','','')
+    ,('Monitor','ServerFreeSpace','4','Weekly','','')
 GO
 
 -- SELECT * FROM [dbo].[Profile]
@@ -794,8 +795,15 @@ VALUES
 	('SQLServer_BuildVersion_2012', '11.0.7001.0', 'Latest build version for SQL Server 2012',	'A', CURRENT_TIMESTAMP),
 	('SQLServer_BuildVersion_2014', '12.0.6329.1', 'Latest build version for SQL Server 2014',	'A', CURRENT_TIMESTAMP),
 	('SQLServer_BuildVersion_2016', '13.0.5850.14', 'Latest build version for SQL Server 2016',	'A', CURRENT_TIMESTAMP),
-    ('SQLServer_BuildVersion_2017', '14.0.3356.20', 'Latest build version for SQL Server 2017',	'A', CURRENT_TIMESTAMP)
-    ('SQLServer_BuildVersion_2017', '15.0.4073.23', 'Latest build version for SQL Server 2019',	'A', CURRENT_TIMESTAMP)
+    ('SQLServer_BuildVersion_2017', '14.0.3356.20', 'Latest build version for SQL Server 2017',	'A', CURRENT_TIMESTAMP),
+    ('SQLServer_BuildVersion_2019', '15.0.4073.23', 'Latest build version for SQL Server 2019',	'A', CURRENT_TIMESTAMP)
+GO
+
+-- Schema name used for Staging purposes
+INSERT INTO [dbo].[SystemParams] (
+    [ParamName], [ParamValue], [ParamDescription], [RecordStatus], [RecordCreated])
+VALUES 
+    ('SchemaName_Staging', 'Staging', 'Schema name used for Staging purposes', 'A', DEFAULT);
 GO
 
 -- SELECT * FROM [dbo].[SystemParams] ORDER BY [ParamName]

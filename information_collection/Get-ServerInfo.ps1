@@ -10,6 +10,10 @@ param([String]$ServerName = '',
 #     Will run the function (if all input parameters are present and valid)
 #
 
+# import functions
+.\functions\Write-Log.ps1
+.\functions\Execute-Remote.ps1
+
 # local variables declared and set to store values passed into script since two of the latter were being initialised when declared in one of the imported scripts
 $ServerInstance = $ServerName
 $Database = $DatabaseName
@@ -46,8 +50,23 @@ function Get-ServerInfo() {
 	"{0} : Query Timeout:     {1}" -f $(Get-Date -Format "HH:mm:ss"), $QueryTimeout
     "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
     
+    #region set variables
     # $ScriptRoot = "$($CurrentPath)\scripts\"
     $ScriptRoot = ".\scripts\"
+    [bool] $IsAlive = $false
+    #endregion
+
+    # variables used for logging
+    [string] $LogFolder = "$($(Get-Location).Path)\LOG"
+    [string] $LogFileName = "$(Get-Date -Format 'yyMMddHHmmssfff')"
+    [string] $LogFilePath = "$LogFolder\$LogFileName.log"
+    # check and create logging subfolder/s
+    if ($false -eq $(Test-Path -Path $LogFolder -PathType Container -ErrorAction SilentlyContinue)) {
+        $null = New-Item -Path $LogFolder -ItemType Directory -Force -ErrorAction SilentlyContinue
+    }
+
+    #region remote script - this is the workhorse
+    $RemoteScriptBlock = { Get-Content }
 
     # get profile (incl, script names and scripts)
     $Sql = "EXEC dbo.uspGetProfile '{0}', '{1}';" -f $ProfileName, $ProfileType
@@ -67,21 +86,13 @@ function Get-ServerInfo() {
             $InstanceName = "$ServerName,$TcpPort"
             "{0} : Processing server: {1}" -f $(Get-Date -Format "HH:mm:ss"), $InstanceName
 
-            # test connection
-            $TestConnection = Test-Port -hostname $ServerName -port $TcpPort
-            if ($TestConnection -eq $true) {
-                # test database authentication
-                $TestAuthentication = Test-DatabaseConnection -InstanceName $InstanceName
-                if ($TestAuthentication -eq $false) {
-                    Write-Warning "Could not log on to $ServerName on port $TcpPort"
-                }
-            }
-            else {
-                Write-Warning "Network access to $ServerName on port $TcpPort not available"
-            }
+            # check TCP connection on the specified port and stop execution on failure
+            try { (New-Object System.Net.Sockets.TcpClient).Connect($ServerName,$ListeningPort); $IsAlive = $true } 
+            catch { $IsAlive = $false; Write-Log -LogFilePath $LogFilePath -LogEntry "$InstanceName could not be reached."}
+            finally {} 
 
             # check if the connection test was successful
-            if (($TestConnection -eq $true) -and ($TestAuthentication -eq $true)) {
+            if ($IsAlive -eq $true) {
                 Foreach ($Script in $Scripts) {
                     $ScriptName = $ScriptRoot + $Script.ScriptName + ".sql"
                     $TableName = $Script.ScriptName

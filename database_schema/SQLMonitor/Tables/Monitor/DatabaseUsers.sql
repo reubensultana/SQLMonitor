@@ -19,7 +19,7 @@ CREATE TABLE [Monitor].[DatabaseUsers](
 	[db_securityadmin] [int] NOT NULL,
 	[SecurablesPermissions] [varchar](max) NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,        -- record status - used to determine if the record is active or not
-    [RecordCreated] [datetime2] (0) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
+    [RecordCreated] [datetimeoffset] (7) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES] TEXTIMAGE_ON [TABLES]
 GO
 
@@ -42,9 +42,9 @@ ALTER TABLE [Monitor].[DatabaseUsers] ADD CONSTRAINT
 	CK_DatabaseUsers_RecordStatus CHECK (RecordStatus LIKE '[ADH]')
 GO
 
--- default constraint on RecordCreated = CURRENT_TIMESTAMP
+-- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [Monitor].[DatabaseUsers] ADD CONSTRAINT
-	DF_DatabaseUsers_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
+	DF_DatabaseUsers_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
 GO
 
 

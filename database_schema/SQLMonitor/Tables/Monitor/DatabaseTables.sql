@@ -18,7 +18,7 @@ CREATE TABLE [Monitor].[DatabaseTables](
     [IndexSizeKB] [bigint] NOT NULL,
     [UnusedSpaceKB] [bigint] NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,         -- record status - used to determine if the record is active or not
-    [RecordCreated] [datetime2] (0) NOT NULL    -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
+    [RecordCreated] [datetimeoffset] (7) NOT NULL    -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]
 GO
 
@@ -41,9 +41,9 @@ ALTER TABLE [Monitor].[DatabaseTables] ADD CONSTRAINT
 	CK_DatabaseTables_RecordStatus CHECK (RecordStatus LIKE '[ADH]')
 GO
 
--- default constraint on RecordCreated = CURRENT_TIMESTAMP
+-- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [Monitor].[DatabaseTables] ADD CONSTRAINT
-	DF_DatabaseTables_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
+	DF_DatabaseTables_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
 GO
 
 

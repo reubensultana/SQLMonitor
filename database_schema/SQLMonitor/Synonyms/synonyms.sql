@@ -22,6 +22,27 @@ DROP TABLE [Archive].[ServerTriggers]
 GO
 */
 
+DROP SYNONYM IF EXISTS [Archive].[DatabaseBackupHistory]
+DROP SYNONYM IF EXISTS [Archive].[DatabaseConfigurations]
+DROP SYNONYM IF EXISTS [Archive].[DatabaseTables]
+DROP SYNONYM IF EXISTS [Archive].[DatabaseUsers]
+DROP SYNONYM IF EXISTS [Archive].[IndexUsageStats]
+DROP SYNONYM IF EXISTS [Archive].[MissingIndexStats]
+DROP SYNONYM IF EXISTS [Archive].[ServerAgentConfig]
+DROP SYNONYM IF EXISTS [Archive].[ServerAgentJobs]
+DROP SYNONYM IF EXISTS [Archive].[ServerAgentJobsHistory]
+DROP SYNONYM IF EXISTS [Archive].[ServerConfigurations]
+DROP SYNONYM IF EXISTS [Archive].[ServerDatabases]
+DROP SYNONYM IF EXISTS [Archive].[ServerEndpoints]
+DROP SYNONYM IF EXISTS [Archive].[ServerErrorLog]
+DROP SYNONYM IF EXISTS [Archive].[ServerFreeSpace]
+DROP SYNONYM IF EXISTS [Archive].[ServerInfo]
+DROP SYNONYM IF EXISTS [Archive].[ServerLogins]
+DROP SYNONYM IF EXISTS [Archive].[ServerMSB]
+DROP SYNONYM IF EXISTS [Archive].[ServerServers]
+DROP SYNONYM IF EXISTS [Archive].[ServerTriggers]
+GO
+
 CREATE SYNONYM [Archive].[DatabaseBackupHistory] FOR [SQLMonitorArchive].[Archive].[DatabaseBackupHistory]
 CREATE SYNONYM [Archive].[DatabaseConfigurations] FOR [SQLMonitorArchive].[Archive].[DatabaseConfigurations]
 CREATE SYNONYM [Archive].[DatabaseTables] FOR [SQLMonitorArchive].[Archive].[DatabaseTables]
@@ -38,6 +59,7 @@ CREATE SYNONYM [Archive].[ServerErrorLog] FOR [SQLMonitorArchive].[Archive].[Ser
 CREATE SYNONYM [Archive].[ServerFreeSpace] FOR [SQLMonitorArchive].[Archive].[ServerFreeSpace]
 CREATE SYNONYM [Archive].[ServerInfo] FOR [SQLMonitorArchive].[Archive].[ServerInfo]
 CREATE SYNONYM [Archive].[ServerLogins] FOR [SQLMonitorArchive].[Archive].[ServerLogins]
+CREATE SYNONYM [Archive].[ServerMSB] FOR [SQLMonitorArchive].[Archive].[ServerMSB]
 CREATE SYNONYM [Archive].[ServerServers] FOR [SQLMonitorArchive].[Archive].[ServerServers]
 CREATE SYNONYM [Archive].[ServerTriggers] FOR [SQLMonitorArchive].[Archive].[ServerTriggers]
 GO

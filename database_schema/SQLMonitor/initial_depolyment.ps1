@@ -55,8 +55,8 @@ $filelist.Add("\Tables\Monitor\DatabaseConfigurations.sql") > $null
 $filelist.Add("\Tables\Monitor\DatabaseTableColumns.sql") > $null
 $filelist.Add("\Tables\Monitor\DatabaseTables.sql") > $null
 $filelist.Add("\Tables\Monitor\DatabaseUsers.sql") > $null
-$filelist.Add("\Tables\Monitor\IndexUsageStats.sql") > $null
-$filelist.Add("\Tables\Monitor\MissingIndexStats.sql") > $null
+$filelist.Add("\Tables\Monitor\DatabaseIndexUsageStats.sql") > $null
+$filelist.Add("\Tables\Monitor\DatabaseMissingIndexStats.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerAgentConfig.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerAgentJobs.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerAgentJobsHistory.sql") > $null
@@ -67,18 +67,38 @@ $filelist.Add("\Tables\Monitor\ServerErrorLog.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerFreeSpace.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerInfo.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerLogins.sql") > $null
+$filelist.Add("\Tables\Monitor\ServerMSB.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerServers.sql") > $null
 $filelist.Add("\Tables\Monitor\ServerTriggers.sql") > $null
 # -----
-$filelist.Add("\Tables\Staging\IndexUsageStats.sql") > $null
-$filelist.Add("\Tables\Staging\MissingIndexStats.sql") > $null
+$filelist.Add("\Tables\Staging\BlitzResults.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseBackupHistory.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseConfigurations.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseTableColumns.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseTables.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseUsers.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseIndexUsageStats.sql") > $null
+$filelist.Add("\Tables\Staging\DatabaseMissingIndexStats.sql") > $null
+$filelist.Add("\Tables\Staging\ServerAgentConfig.sql") > $null
+$filelist.Add("\Tables\Staging\ServerAgentJobs.sql") > $null
+$filelist.Add("\Tables\Staging\ServerAgentJobsHistory.sql") > $null
+$filelist.Add("\Tables\Staging\ServerConfigurations.sql") > $null
+$filelist.Add("\Tables\Staging\ServerDatabases.sql") > $null
+$filelist.Add("\Tables\Staging\ServerEndpoints.sql") > $null
+$filelist.Add("\Tables\Staging\ServerErrorLog.sql") > $null
+$filelist.Add("\Tables\Staging\ServerFreeSpace.sql") > $null
+$filelist.Add("\Tables\Staging\ServerInfo.sql") > $null
+$filelist.Add("\Tables\Staging\ServerLogins.sql") > $null
+$filelist.Add("\Tables\Staging\ServerMSB.sql") > $null
+$filelist.Add("\Tables\Staging\ServerServers.sql") > $null
+$filelist.Add("\Tables\Staging\ServerTriggers.sql") > $null
 # -----
 $filelist.Add("\Tables\Archive\DatabaseBackupHistory.sql") > $null
 $filelist.Add("\Tables\Archive\DatabaseConfigurations.sql") > $null
 $filelist.Add("\Tables\Archive\DatabaseTables.sql") > $null
 $filelist.Add("\Tables\Archive\DatabaseUsers.sql") > $null
-$filelist.Add("\Tables\Archive\IndexUsageStats.sql") > $null
-$filelist.Add("\Tables\Archive\MissingIndexStats.sql") > $null
+$filelist.Add("\Tables\Archive\DatabaseIndexUsageStats.sql") > $null
+$filelist.Add("\Tables\Archive\DatabaseMissingIndexStats.sql") > $null
 $filelist.Add("\Tables\Archive\ServerAgentConfig.sql") > $null
 $filelist.Add("\Tables\Archive\ServerAgentJobs.sql") > $null
 $filelist.Add("\Tables\Archive\ServerAgentJobsHistory.sql") > $null
@@ -89,32 +109,12 @@ $filelist.Add("\Tables\Archive\ServerErrorLog.sql") > $null
 $filelist.Add("\Tables\Archive\ServerFreeSpace.sql") > $null
 $filelist.Add("\Tables\Archive\ServerInfo.sql") > $null
 $filelist.Add("\Tables\Archive\ServerLogins.sql") > $null
+$filelist.Add("\Tables\Archive\ServerMSB.sql") > $null
 $filelist.Add("\Tables\Archive\ServerServers.sql") > $null
 $filelist.Add("\Tables\Archive\ServerTriggers.sql") > $null
 
 # ----- views -----
 $filelist.Add("\Views\dbo\vwProfile.sql") > $null
-# -----
-$filelist.Add("\Views\Monitor\blitz_results.sql") > $null
-$filelist.Add("\Views\Monitor\database_backup_history.sql") > $null
-$filelist.Add("\Views\Monitor\database_configurations.sql") > $null
-$filelist.Add("\Views\Monitor\database_indexusagestats.sql") > $null
-$filelist.Add("\Views\Monitor\database_missingindexstats.sql") > $null
-$filelist.Add("\Views\Monitor\database_tables.sql") > $null
-$filelist.Add("\Views\Monitor\database_table_columns.sql") > $null
-$filelist.Add("\Views\Monitor\database_users.sql") > $null
-$filelist.Add("\Views\Monitor\server_agentconfig.sql") > $null
-$filelist.Add("\Views\Monitor\server_agentjobs.sql") > $null
-$filelist.Add("\Views\Monitor\server_agentjobshistory.sql") > $null
-$filelist.Add("\Views\Monitor\server_configurations.sql") > $null
-$filelist.Add("\Views\Monitor\server_databases.sql") > $null
-$filelist.Add("\Views\Monitor\server_endpoints.sql") > $null
-$filelist.Add("\Views\Monitor\server_errorlog.sql") > $null
-$filelist.Add("\Views\Monitor\server_freespace.sql") > $null
-$filelist.Add("\Views\Monitor\server_info.sql") > $null
-$filelist.Add("\Views\Monitor\server_logins.sql") > $null
-$filelist.Add("\Views\Monitor\server_servers.sql") > $null
-$filelist.Add("\Views\Monitor\server_triggers.sql") > $null
 # -----
 $filelist.Add("\Views\Reporting\vwErrorLog.sql") > $null
 

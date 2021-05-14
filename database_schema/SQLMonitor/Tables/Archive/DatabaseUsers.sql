@@ -19,7 +19,7 @@ CREATE TABLE [Archive].[DatabaseUsers](
 	[db_securityadmin] [int] NOT NULL,
 	[SecurablesPermissions] [varchar](max) NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,        -- record status - used to determine if the record is active or not
-    [RecordCreated] [datetime2] (0) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
+    [RecordCreated] [datetimeoffset] (7) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES] TEXTIMAGE_ON [TABLES]
 GO
 
