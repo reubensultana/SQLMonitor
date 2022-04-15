@@ -39,6 +39,12 @@ param(
     -MonitorStagingSchema $MonitorStagingSchema -FileList $FileList -QueryTimeout $QueryTimeout -LogFilePath $LogFilePath -Verbose
 #>
 
+# check if dbatools is installed
+if ($(Get-InstalledModule -Name dbatools -ErrorAction SilentlyContinue).Name -ne "dbatools") { 
+    Write-Error "DBA Tools is not installed. Please install it as explained in the deployment instructions."
+    return
+}
+
 # import modules - assuming that they must be installed as part of the project prerequisites
 if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbatools }
 

@@ -24,3 +24,11 @@ function Test-Port($HostName, $Port) {
         Return $False
     }
 }
+
+
+<#
+Alternative:
+--------------------------------------------------------------------------------
+try { (New-Object System.Net.Sockets.TcpClient).Connect($ServerName,$TcpPort); return $true } 
+catch { return $false }
+#>

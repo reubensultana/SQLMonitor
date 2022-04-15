@@ -40,8 +40,8 @@ FROM [SQLMonitor].[dbo].[Profile]
 ORDER BY ProfileType, ExecutionOrder, ProfileName, ScriptName
 */
 
--- NOTE: variable mappings for the "PreExecuteScript" column:
---     {0} => ServerName
+-- NOTE 1: Every PreExecuteScript command MUST have a single filtering "@ServerName" parameter:
+-- NOTE 2: Every PreExecuteScript command MUST always return a single value of type VARCHAR with the column name being "Output"
 -- ---------------------------------------------
 -- TRUNCATE TABLE [dbo].[Profile];
 INSERT INTO [dbo].[Profile] (
