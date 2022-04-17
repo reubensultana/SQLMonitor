@@ -41,7 +41,7 @@ ORDER BY ProfileType, ExecutionOrder, ProfileName, ScriptName
 */
 
 -- NOTE 1: Every PreExecuteScript command MUST have a single filtering "@ServerName" parameter:
--- NOTE 2: Every PreExecuteScript command MUST always return a single value of type VARCHAR with the column name being "Output"
+-- NOTE 2: Every PreExecuteScript command MUST always return a single datetime value cast as a VARCHAR(25) data type, with the column name being "Output"
 -- ---------------------------------------------
 -- TRUNCATE TABLE [dbo].[Profile];
 INSERT INTO [dbo].[Profile] (

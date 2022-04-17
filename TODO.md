@@ -30,6 +30,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 * [ ] Compile Posh functions as a SqlMonitor Module;
 * [ ] Deployment instructions: Add `Import-Module dbatools` to the `$Profile` of the account running this solution;
 * [ ] Option to write collected information to CSV or Excel files (use `ImportExcel` module) instead of the SQLMonitor database;
+* [ ] Securely store Windows/SQL authentication parameters for each server in the database;
 
 ## Scripts
 

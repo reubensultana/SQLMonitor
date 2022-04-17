@@ -25,16 +25,16 @@ if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbat
 # get script file location
 $CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
 
-# check for existence of external files used for this solution
+# check for existence of external files used by this script
 [string] $SupportFile = ""
 $SupportFile = "$($CurrentPath)\functions\Write-Log.ps1"
-if ( $false = $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
+if ( $false -eq $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
 
 $SupportFile = "$($CurrentPath)\functions\Test-NetworkConnection.ps1"
-if ( $false = $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
+if ( $false -eq $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
 
 $SupportFile = "$($CurrentPath)\functions\Execute-Remote.ps1"
-if ( $false = $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
+if ( $false -eq $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
 
 # import functions
 . "$($CurrentPath)\functions\Write-Log.ps1"
@@ -50,7 +50,20 @@ function Get-ServerInfo() {
         [Parameter(Position=4, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfile,
         [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfileType,
         [Parameter(Position=6, Mandatory=$true)] [ValidateNotNull()] [int] $QueryTimeout
-    )  
+    )
+
+    # --------------------------------------------------------------------------------
+    # generic variables
+    [string] $ApplicationName = "SqlMonitor"
+    # get the Local Machine name
+    [string] $HostName = [System.NET.DNS]::GetHostByName($null).HostName
+    <# 
+    Alternatives:
+        - [System.Net.DNS]::GetHostByName('').HostName
+        - $env:COMPUTERNAME
+        - [Environment]::MachineName
+        - (Get-CimInstance -ClassName Win32_ComputerSystem).Name
+    #>
     
     # --------------------------------------------------------------------------------
     # variables used for logging
@@ -91,20 +104,27 @@ function Get-ServerInfo() {
     Write-Log -LogFilePath $LogFilePath -LogEntry ""
     Write-Log -LogFilePath $LogFilePath -LogEntry ""
 
-    # create the MONITOR connection object - https://docs.dbatools.io/#Connect-DbaInstance
+    # --------------------------------------------------------------------------------
+    # create the MONITOR connection object - https://docs.dbatools.io/Connect-DbaInstance
+        # https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlconnection
+    $MonitorSqlConnection = New-Object System.Data.SqlClient.SQLConnection
+    # $MonitorSqlConnection = New-Object Microsoft.Data.SqlClient.SQLConnection
     # use Windows Authentication
-    if ($null -eq $MonitorSqlAuthCredential) { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorqlInstance -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName }
+    if ($null -eq $MonitorSqlAuthCredential) { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -ApplicationName $ApplicationName }
     # use SQL Authentication (NOTE: Username and Password sent in clear text - this is by design)
-    else { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential }
+    else { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -ApplicationName $ApplicationName -SqlCredential $MonitorSqlAuthCredential }
+    # TODO: Disconnect-DbaInstance
 
     # --------------------------------------------------------------------------------
-    # get profile (incl, script names and scripts) from MONITOR database - http://docs.dbatools.io/#Invoke-DbaQuery
+    # get profile (incl, script names and scripts) from MONITOR database - http://docs.dbatools.io/Invoke-DbaQuery
     $SqlCmd = "dbo.uspGetProfile"
     # define the SQL command input parameters
     $QueryParameters = @{
         "ProfileName" = $MonitorProfile;
         "ProfileType" = $MonitorProfileType;
     };
+    # https://docs.microsoft.com/en-us/dotnet/api/system.data.datatable
+    $ScriptsDataSet = New-Object System.Data.DataTable
     $ScriptsDataSet = Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -CommandType StoredProcedure -Query $SqlCmd -SqlParameters $QueryParameters -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
     if ($ScriptsDataSet.Rows.Count -eq 0) {
         Write-Log -LogFilePath $LogFilePath -LogEntry $("No scripts found for profile {0} and type {1}." -f $MonitorProfile, $MonitorProfileType)
@@ -147,8 +167,10 @@ function Get-ServerInfo() {
     }
     
     # --------------------------------------------------------------------------------
-    # get list of active servers from MONITOR database - http://docs.dbatools.io/#Invoke-DbaQuery
+    # get list of active servers from MONITOR database - http://docs.dbatools.io/Invoke-DbaQuery
     $SqlCmd = "dbo.uspGetServers"
+    # https://docs.microsoft.com/en-us/dotnet/api/system.data.datatable
+    $InstancesDataSet = New-Object System.Data.DataTable
     $InstancesDataSet = Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -CommandType StoredProcedure -Query $SqlCmd -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
     if ($InstancesDataSet.Rows.Count -eq 0) {
         Write-Log -LogFilePath $LogFilePath -LogEntry "No active servers found in SQL Monitor database."
@@ -201,6 +223,98 @@ function Get-ServerInfo() {
     $Runspaces = @()
     #endregion
 
+    #region execute script on remote servers
+    $timer = [System.Diagnostics.Stopwatch]::StartNew()
+
+    # start jobs on all servers
+    if ( ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Count -gt 0 ) -and ($AvailableInstancesDataSet.Count -gt 0) ) {
+        foreach ($InstanceName in $AvailableInstancesDataSet) {
+            Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $InstanceName)
+
+            # Runspace code starts here
+            <#
+            What's happening:
+            ------------------------------
+            loop through list of scripts
+                check script last execution - get MAX date value from respective table name
+                compare script interval between runs (frequency) with script last exection date
+                execute the PreExecute script (if any)
+                execute the remote script storing data in memory
+                mark all currently active records as historical
+                copy remote execution results from memory to the database
+            iterate
+            clean up
+            #>
+
+            # $RemoteScriptBlock input parameters
+            <#
+            0. $MonitorSqlConnection = $MonitorSqlConnection
+            1. $MonitorDatabaseName = $MonitorDatabaseName
+            2. $MonitorProfile
+            3. $InstanceName
+            4. $InstanceCredentials
+            5. $ScriptsDataSet
+            6. $LogFilePath
+            #>
+
+
+
+
+
+
+
+            $InstanceLongPortName = $Server
+            Write-Log -LogFilePath $LogFilePath -LogEntry "> $InstanceLongPortName"
+            # build connection string from template
+            $RemoteServerConnection = $ConnectionStringTemplate -f $InstanceLongPortName, "master", "true", $ApplicationName, $ConnectionTimeout
+            
+            $ConcurrentQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
+            $Runspace = [PowerShell]::Create()
+            $null = $Runspace.AddScript($RemoteScriptBlock)
+            $null = $Runspace.AddArgument($InstanceLongPortName)
+            $null = $Runspace.AddArgument($RemoteServerConnection)
+            $null = $Runspace.AddArgument($ActualFileList)
+            $null = $Runspace.AddArgument($QueryTimeout)
+            $null = $Runspace.AddArgument($LogFilePath)
+            $Runspace.RunspacePool = $RunspacePool
+            $Runspaces += [PSCustomObject]@{ Pipe = $Runspace; Status = $Runspace.BeginInvoke() }
+            
+            # While streaming ...
+            while ($Runspaces.Status.IsCompleted -notcontains $true) {
+                $item = $null
+                if ($ConcurrentQueue.TryDequeue([ref]$item)) { "$item" }
+            }
+            # Drain the stream as the Runspace is closed, just to be safe
+            if ($ConcurrentQueue.IsEmpty -ne $true) {
+                $item = $null
+                while ($ConcurrentQueue.TryDequeue([ref]$item)) { "$item" }
+            }
+            foreach ($Runspace in $Runspaces) {
+                [void]$Runspace.Pipe.EndInvoke($Runspace.Status) # EndInvoke method retrieves the results of the asynchronous calls
+                $Runspace.Pipe.Dispose()
+            }
+        }
+    }
+
+    [int] $secs = $timer.Elapsed.TotalSeconds
+    Write-Log -LogFilePath $LogFilePath -LogEntry "----------"
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Servers processed: $($AvailableInstancesDataSet.Count)"
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Duration: {0} seconds" -f $secs)
+
+    $RunspacePool.Close()
+    $RunspacePool.Dispose()
+
+    # clean up SQL connections and reset Default Runspace
+    [System.Data.SQLClient.SqlConnection]::ClearAllPools()
+    [System.Management.Automation.Runspaces.Runspace]::DefaultRunspace = $DefaultRunspace
+    #endregion
+
+    #region clean up
+
+    #endregion
+
+
+
 
 
 
@@ -208,7 +322,8 @@ function Get-ServerInfo() {
     # clear
     $SqlCmd = $null
     
-	if ($Scripts.Table.Rows.Count -gt 0) {
+    # check again...
+	if ( ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Count -gt 0 ) -and ($AvailableInstancesDataSet.Count -gt 0) ){
         foreach ($InstanceName in $AvailableInstancesDataSet) {
             Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $InstanceName)
 
@@ -233,17 +348,6 @@ function Get-ServerInfo() {
                 $IntervalMinutes = $Script.IntervalMinutes
                 # the script that should be executed, retrieved from the database
                 $ExecuteScript = $Script.ExecuteScript
-                # if the script is not stored in the database, load it from the file
-                if ([string]::IsNullOrEmpty($ExecuteScript)) {
-                    # check that the script file exists
-                    if (Test-Path $ScriptName -PathType Leaf) {
-                        $ExecuteScript = Get-Content -Path $ScriptName -Raw
-                    }
-                    else {
-                        # logging only; further checks below
-                        Write-Log -LogFilePath $LogFilePath -LogEntry $("Script file {0} does not exist." -f $ScriptName)
-                    }
-                }
                 # if at this stage the $ExecuteScript variable is still empty, then exit the loop and stop the process
                 if ([string]::IsNullOrEmpty($ExecuteScript)) { 
                     Write-Log -LogFilePath $LogFilePath -LogEntry $("The code for the {0} script could not be located." -f $Script.ScriptName)
