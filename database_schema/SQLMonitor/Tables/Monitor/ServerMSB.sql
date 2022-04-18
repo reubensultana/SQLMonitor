@@ -14,7 +14,7 @@ CREATE TABLE [Monitor].[ServerMSB](
     [MSBName] [varchar](255) NOT NULL,
     [MSBCheck] [varchar](255) NOT NULL,
     [MSBResult] [nvarchar](128) NULL,
-    [MSBCompliant] [smallint] NULL,
+    [MSBCompliant] [varchar](10) NULL,
     [RecordStatus] [char] (1) NOT NULL,         -- record status - used to determine if the record is active or not
     [RecordCreated] [datetimeoffset] (7) NOT NULL    -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]

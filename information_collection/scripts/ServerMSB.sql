@@ -104,9 +104,9 @@ VALUES ('1.11', @instancename, 'Integration Service account rights', 'Integratio
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)
 VALUES ('1.12', @instancename, 'Deny SQL Server services account to log in locally', 'Deny SQL Server services account to log in locally', 'N/A', -1)
 
---1.13 SQL Server services account rights permissions "Log on to" the database server only
+--1.13 SQL Server services account rights permissions 'Log on to' the database server only
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)
-VALUES ('1.13', @instancename, 'SQL Server services account rights permissions "Log on to" the database server only', 'SQL Server services account rights permissions "Log on to" the database server only', 'N/A', -1)
+VALUES ('1.13', @instancename, 'SQL Server services account rights permissions ''Log on to'' the database server only', 'SQL Server services account rights permissions ''Log on to'' the database server only', 'N/A', -1)
 
 --1.14 SQL Server Proxy accounts
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)
@@ -279,9 +279,9 @@ END
 --04.3	SQL Server Settings
 ---------------------------
 
---3.1 - Disable the "Named Pipes" network protocol
+--3.1 - Disable the 'Named Pipes' network protocol
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)
-VALUES ('3.1', @instancename, 'Disable the "Named Pipes" network protocol', 'Disable the "Named Pipes" network protocol', 'N/A', -1);
+VALUES ('3.1', @instancename, 'Disable the ''Named Pipes'' network protocol', 'Disable the ''Named Pipes'' network protocol', 'N/A', -1);
 
 --3.2 - Auto Restart SQL Server 
 INSERT INTO #MSBChecks (msb_id, msb_InstanceName, msb_name, msb_check, msb_result, msb_compliant)

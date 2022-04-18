@@ -2,7 +2,7 @@
 SET NOCOUNT ON;
 
 SELECT 
-    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS ServerName
+    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS [ServerName]
     ,[name] AS [ObjectName]
     ,[type_desc] AS [ObjectType]
     ,CAST([create_date] AS datetime) AS [CreateDate]

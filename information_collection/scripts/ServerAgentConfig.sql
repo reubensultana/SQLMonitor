@@ -89,7 +89,7 @@ BEGIN
 		EXEC sp_MSgetalertinfo;
 END
 
-SELECT CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS ServerName,
+SELECT CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS [ServerName],
 	auto_start AS [AutoStart]
 	,startup_account AS [StartupAccount]
 	,jobhistory_max_rows AS [JobHistoryMaxRows]

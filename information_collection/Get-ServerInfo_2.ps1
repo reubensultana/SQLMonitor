@@ -2,8 +2,8 @@ param(
     [Parameter(Position=1, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorSqlInstance,
     [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorDatabaseName,
     [Parameter(Position=3, Mandatory=$true)] [ValidateNotNull()] [int] $MonitorConnectTimeout = 30,
-    [Parameter(Position=4, Mandatory=$true)] [ValidateNotNullOrEmpty()] [int] $MonitorProfile,
-    [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [int] $MonitorProfileType,
+    [Parameter(Position=4, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfile,
+    [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfileType,
     [Parameter(Position=6, Mandatory=$true)] [ValidateNotNull()] [int] $QueryTimeout = 360
 )
 
@@ -25,16 +25,21 @@ if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbat
 # get script file location
 $CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
 
+function Test-FilePath {
+    param(
+        [Parameter(Mandatory)] [string] $Path
+    )
+    if ( $false -eq $(Test-Path -Path $Path -PathType Leaf) ) { 
+        Write-Error $("The required file {0} does not exist." -f $FilePath)
+        return $false
+    }
+    return $true
+}
+
 # check for existence of external files used by this script
-[string] $SupportFile = ""
-$SupportFile = "$($CurrentPath)\functions\Write-Log.ps1"
-if ( $false -eq $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
-
-$SupportFile = "$($CurrentPath)\functions\Test-NetworkConnection.ps1"
-if ( $false -eq $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
-
-$SupportFile = "$($CurrentPath)\functions\Execute-Remote.ps1"
-if ( $false -eq $(Test-Path $SupportFile -PathType Leaf) ) { Write-Error $("The required file {0} does not exist." -f $SupportFile) }
+if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\functions\Write-Log.ps1")) { return }
+if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\functions\Test-NetworkConnection.ps1")) { return }
+if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\functions\Execute-Remote.ps1")) { return }
 
 # import functions
 . "$($CurrentPath)\functions\Write-Log.ps1"
@@ -67,9 +72,9 @@ function Get-ServerInfo() {
     
     # --------------------------------------------------------------------------------
     # variables used for logging
-    [string] $LogFolder = "$($(Get-Location).Path)\LOG"
-    [string] $LogFileName = "$(Get-Date -Format 'yyMMddHHmmssfff')"
-    [string] $LogFilePath = "$LogFolder\$LogFileName.log"
+    [string] $LogFolder = "{0}\LOG" -f $(Get-Location).Path
+    [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyyyMMddHHmmssfff')
+    [string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
     # check and create logging subfolder/s
     if ($false -eq $(Test-Path -Path $LogFolder -PathType Container -ErrorAction SilentlyContinue)) {
         $null = New-Item -Path $LogFolder -ItemType Directory -Force -ErrorAction SilentlyContinue
@@ -77,7 +82,7 @@ function Get-ServerInfo() {
 
     # --------------------------------------------------------------------------------
     #region set variables
-    [string] $ScriptRoot = "$($CurrentPath)\scripts\"
+    [string] $ScriptRoot = "{0}\scripts\" -f $CurrentPath
     [bool] $IsAlive = $false
     [string] $SqlCmd = ""
     #endregion
@@ -88,18 +93,19 @@ function Get-ServerInfo() {
     [int] $TcpPort = 0
     [string] $InstanceName = ""
     [string] $ScriptPath = ""
+    [PSCredential] $SqlAuthCredential = $null
     #endregion
     
     # --------------------------------------------------------------------------------
     # start here
     Write-Log -LogFilePath $LogFilePath -LogEntry "=============================="
     Write-Log -LogFilePath $LogFilePath -LogEntry "Starting function: Get-ServerInfo"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Server Name:       $MonitorSqlInstance"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Database Name:     $MonitorDatabaseName"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Connect Timeout:   $MonitorConnectTimeout"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Profile Name:      $MonitorProfile"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Profile Type:      $MonitorProfileType"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Query Timeout:     $QueryTimeout"
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Server Name:       " -f $MonitorSqlInstance
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Database Name:     " -f $MonitorDatabaseName
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Connect Timeout:   " -f $MonitorConnectTimeout
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Profile Name:      " -f $MonitorProfile
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Profile Type:      " -f $MonitorProfileType
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Query Timeout:     " -f $QueryTimeout
     Write-Log -LogFilePath $LogFilePath -LogEntry "=============================="
     Write-Log -LogFilePath $LogFilePath -LogEntry ""
     Write-Log -LogFilePath $LogFilePath -LogEntry ""
@@ -107,12 +113,12 @@ function Get-ServerInfo() {
     # --------------------------------------------------------------------------------
     # create the MONITOR connection object - https://docs.dbatools.io/Connect-DbaInstance
         # https://docs.microsoft.com/en-us/dotnet/api/microsoft.data.sqlclient.sqlconnection
-    $MonitorSqlConnection = New-Object System.Data.SqlClient.SQLConnection
+    $MonitorSqlConnection = New-Object Microsoft.SqlServer.Management.Smo.Server
     # $MonitorSqlConnection = New-Object Microsoft.Data.SqlClient.SQLConnection
     # use Windows Authentication
-    if ($null -eq $MonitorSqlAuthCredential) { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -ApplicationName $ApplicationName }
+    if ($null -eq $MonitorSqlAuthCredential) { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName }
     # use SQL Authentication (NOTE: Username and Password sent in clear text - this is by design)
-    else { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -ApplicationName $ApplicationName -SqlCredential $MonitorSqlAuthCredential }
+    else { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential }
     # TODO: Disconnect-DbaInstance
 
     # --------------------------------------------------------------------------------
@@ -232,20 +238,6 @@ function Get-ServerInfo() {
             Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $InstanceName)
 
             # Runspace code starts here
-            <#
-            What's happening:
-            ------------------------------
-            loop through list of scripts
-                check script last execution - get MAX date value from respective table name
-                compare script interval between runs (frequency) with script last exection date
-                execute the PreExecute script (if any)
-                execute the remote script storing data in memory
-                mark all currently active records as historical
-                copy remote execution results from memory to the database
-            iterate
-            clean up
-            #>
-
             # $RemoteScriptBlock input parameters
             <#
             0. $MonitorSqlConnection = $MonitorSqlConnection
@@ -258,23 +250,17 @@ function Get-ServerInfo() {
             #>
 
 
-
-
-
-
-
-            $InstanceLongPortName = $Server
-            Write-Log -LogFilePath $LogFilePath -LogEntry "> $InstanceLongPortName"
-            # build connection string from template
-            $RemoteServerConnection = $ConnectionStringTemplate -f $InstanceLongPortName, "master", "true", $ApplicationName, $ConnectionTimeout
-            
             $ConcurrentQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
             $Runspace = [PowerShell]::Create()
+            # add remote script code
             $null = $Runspace.AddScript($RemoteScriptBlock)
-            $null = $Runspace.AddArgument($InstanceLongPortName)
-            $null = $Runspace.AddArgument($RemoteServerConnection)
-            $null = $Runspace.AddArgument($ActualFileList)
-            $null = $Runspace.AddArgument($QueryTimeout)
+            # add parameters, in the order they are defined in the script
+            $null = $Runspace.AddArgument($MonitorSqlConnection)
+            $null = $Runspace.AddArgument($MonitorDatabaseName)
+            $null = $Runspace.AddArgument($MonitorProfile)
+            $null = $Runspace.AddArgument($InstanceName)
+            $null = $Runspace.AddArgument($SqlAuthCredential)       # <== currently NULL; on the TODO list
+            $null = $Runspace.AddArgument($ScriptsDataSet)
             $null = $Runspace.AddArgument($LogFilePath)
             $Runspace.RunspacePool = $RunspacePool
             $Runspaces += [PSCustomObject]@{ Pipe = $Runspace; Status = $Runspace.BeginInvoke() }
@@ -312,169 +298,9 @@ function Get-ServerInfo() {
     #region clean up
 
     #endregion
-
-
-
-
-
-
-
-    # clear
-    $SqlCmd = $null
-    
-    # check again...
-	if ( ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Count -gt 0 ) -and ($AvailableInstancesDataSet.Count -gt 0) ){
-        foreach ($InstanceName in $AvailableInstancesDataSet) {
-            Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $InstanceName)
-
-            # Runspace code starts here
-            <#
-            What's happening:
-            ------------------------------
-            loop through list of scripts
-                check script last execution - get MAX date value from respective table name
-                compare script interval between runs (frequency) with script last exection date
-                execute the PreExecute script (if any)
-                execute the remote script storing data in memory
-                mark all currently active records as historical
-                copy remote execution results from memory to the database
-            iterate
-            clean up
-            #>
-
-            Foreach ($Script in $ScriptsDataSet) {
-                $ScriptName = $ScriptRoot + $Script.ScriptName + ".sql"
-                $TableName = $Script.ScriptName
-                $IntervalMinutes = $Script.IntervalMinutes
-                # the script that should be executed, retrieved from the database
-                $ExecuteScript = $Script.ExecuteScript
-                # if at this stage the $ExecuteScript variable is still empty, then exit the loop and stop the process
-                if ([string]::IsNullOrEmpty($ExecuteScript)) { 
-                    Write-Log -LogFilePath $LogFilePath -LogEntry $("The code for the {0} script could not be located." -f $Script.ScriptName)
-                    break }
-                # good to go
-                else {
-                    # check when the script was last run and compare to the pre-defined value for how many minutes should have elapsed
-                    # this will avoid that say, a script that should run Monthly is run multiple times during the month
-                    # the COALESCE function will either return the value of the most recent RecordCreated column for that server OR the value 600,000 (which is more than 1 year in minutes)
-                    $SqlCmd = "
-SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), SYSDATETIMEOFFSET()), 600000) AS [MinutesElapsed] 
-FROM [{0}].[{1}] 
-WHERE [ServerName] = @ServerName 
-AND [RecordStatus] = 'A';" -f $ProfileName, $TableName
-                    # define the SQL command input parameters
-                    $QueryParameters = @{
-                        "ServerName" = $ServerName;
-                    };
-                    $ResultDataSet = Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -CommandType Text -Query $SqlCmd -SqlParameters $QueryParameters -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
-                    $MinutesElapsed = $ResultDataSet.MinutesElapsed
-                    # check result and set a default value
-                    if ($null -eq $MinutesElapsed) { $MinutesElapsed = 600000 }
-                    $ResultDataSet = $null
-
-                    # compare values and handle processing (greater than or equal to comparison)
-                    if ($MinutesElapsed -ge $IntervalMinutes) {
-
-                        # run any script marked for pre-execution
-                        $SqlCmd = $Script.PreExecuteScript
-                        # NOTE: if NOT IsNullOrEmpty...
-                        if (![string]::IsNullOrEmpty($SqlCmd)) {
-                            # define the SQL command input parameters
-                            # NOTE 1: Every PreExecuteScript command MUST have a single filtering "@ServerName" parameter
-                            # NOTE 2: Every PreExecuteScript command MUST always return a single value of type VARCHAR with the column name being "Output"
-                            $QueryParameters = @{
-                                "ServerName" = $ServerName;
-                            };
-                            $PreExecuteResult = Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -CommandType Text -Query $SqlCmd -SqlParameters $QueryParameters -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
-                        }
-
-                        "{0} : Running script:    {1}" -f $(Get-Date -Format "HH:mm:ss"), $ScriptName
-                        # run the script retrieved from the database or from file
-                        $SqlCmd = $ExecuteScript
-                        # replace the script parameter with the result obtained
-                        # NOTE: if NOT IsNullOrEmpty...
-                        if (![string]::IsNullOrEmpty($PreExecuteResult)) {
-                            $SqlCmd = $SqlCmd -f $PreExecuteResult.Output
-                        }
-
-
-                        # run and store the output in a data table variable
-                        try {
-                            $Result = Invoke-Sqlcmd2 -ServerInstance $InstanceName -Database master -Query $Sql.ToString() -QueryTimeout $QueryTimeout
-                            $ErrorMessage = $null
-                        }
-                        catch {
-                            $ErrorMessage = $_.Exception.Message
-                            Write-Warning $ErrorMessage
-                        }
-
-
-
-                        # check if the data retrieval was successful
-                        if ([string]::IsNullOrEmpty($ErrorMessage)) {
-                            $dt = $Result | Out-DataTable
-                            $dtRowCount = $dt.Rows.Count
-
-                            # update the status for older data
-                            $Sql = "
-IF EXISTS (SELECT 1 FROM $($ProfileName).$($TableName) WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A') 
-    UPDATE $($ProfileName).$($TableName) SET [RecordStatus] = 'H' WHERE [ServerName] = '$($ServerName)' AND [RecordStatus] = 'A';"
-                            Invoke-Sqlcmd2 -ServerInstance $ServerInstance -Database $Database -Query $Sql -QueryTimeout $QueryTimeout
-
-                            # write data extracted from remote server to the central table
-                            if ($dtRowCount -gt 0) {
-                                Write-DataTable -Data $dt -ServerInstance $ServerInstance -Database $Database -TableName "$($ProfileName).$($TableName)"
-                            }
-                        }
-                        # clean up
-                        $ErrorMessage = $null
-                        $ExecuteScript = $null
-                        $Result = $null
-                        $dt = $null
-                        $dtRowCount = 0
-                        $PreExecuteResult = $null
-                    }
-                    # script has been executed against the current server in the past N minutes
-                    else {
-                        $ts =  [timespan]::fromminutes($MinutesElapsed)
-                        $age = New-Object DateTime -ArgumentList $ts.Ticks
-
-                        $msg = "" 
-
-                        if ($($age.Year-1) -gt 0) { $msg += " " + $($age.Year-1).ToString() + " Years" }
-                        if ($($age.Month-1) -gt 0) { $msg += " " + $($age.Month-1).ToString() + " Months" }
-                        if ($($age.Day-1) -gt 0) { $msg += " " + $($age.Day-1).ToString() + " days" }
-                        if ($($age.Hour) -gt 0) { $msg += " " + $($age.Hour).ToString() + " hours" }
-                        if ($($age.Minute) -gt 0) { $msg += " " + $($age.Minute).ToString() + " minutes" }
-                        #if ($($age.second) -gt 0) { $msg += " " + $($age.second).ToString() + " seconds" }
-
-                        $msg += " ago"
-
-                        "{0} : Script {1} was last run$msg." -f $(Get-Date -Format "HH:mm:ss"), $ScriptName
-                    }
-                } # if
-                # script file does not exist
-                else {
-                    "{0} : Script {1} not found." -f $(Get-Date -Format "HH:mm:ss"), $ScriptName
-                }
-                $ScriptName = $null
-                $TableName = $null
-                $IntervalMinutes = $null
-            } # if
-            "{0} : Completed server:  {1}" -f $(Get-Date -Format "HH:mm:ss"), $InstanceName
-            "{0} : ------------------------------ " -f $(Get-Date -Format "HH:mm:ss")
-            $ServerName = $null
-            $InstanceName = $null
-        }
-    }
-    else {
-        Write-Warning "No scripts found for the $ProfileType profile!"
-    }
-    "{0} : Done" -f $(Get-Date -Format "HH:mm:ss")
-    "{0} : ============================== " -f $(Get-Date -Format "HH:mm:ss")
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Collection completed."
 }
 
-Clear-Host
 # run this only if the parameters have been passed to the script
 # interface implemented to be called from Windows Task Scheduler or similar applications
 if (($ServerInstance -ne '') -and ($Database -ne '') -and ($ProfileName -ne '') -and ($ProfileType -ne '')) {

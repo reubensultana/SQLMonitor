@@ -1,15 +1,17 @@
 # A Work List for this Project
 
-A collection of items, thoughts and suggestions that I have for this project. Feel free to contact me if yuo have any suggestions or questions.
+A collection of items, thoughts and suggestions that I have for this project. Feel free to contact me if you have any suggestions or questions.
 
 ## Functionality
 
-* [ ] Modify functionality to use [DBA Tools](https://dbatools.io) module instead of writing my own;
+* [x] Modify functionality to use [DBA Tools](https://dbatools.io) module instead of writing my own;
 * [ ] Split main code functionality to use PoSh Runspaces;
-* [ ] Enhance logging, writing to text files in a specific folder. Add options to load log files to the database and/or clear log files older than N days/weeks/months;
+* [ ] Enhance logging, writing to text files in a specific folder;
+* [ ] Functionality to load log files to the database (?);
+* [ ] Functionality to clear log files older than N days/weeks/months;
 * [ ] Modify deployment scripts to avoid hard-coding the Database Name;
 * [ ] Check and install DBA Tools as part of the deployment (manual installation is always possible for servers not connected to the Internet);
-* [ ] Merge the Audit/History objects back into the main database, or make it a parameter/choice it in the deployment scripts;
+* [ ] Merge the Audit/History objects back into the main database, or make it a parameter/choice in the deployment scripts;
 * [ ] Split `.\initial_data_set.sql` into multiple files for better manageability;
 * [ ] Write PoSh functions to support and maintain SqlMonitor functionality, e.g.:  
   * Get-SMConfig
@@ -30,7 +32,8 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 * [ ] Compile Posh functions as a SqlMonitor Module;
 * [ ] Deployment instructions: Add `Import-Module dbatools` to the `$Profile` of the account running this solution;
 * [ ] Option to write collected information to CSV or Excel files (use `ImportExcel` module) instead of the SQLMonitor database;
-* [ ] Securely store Windows/SQL authentication parameters for each server in the database;
+* [ ] Securely store SQL authentication parameters for each server in the database;
+* [ ] Convert embeddded TSQL code to stored procedures;
 
 ## Scripts
 
@@ -44,7 +47,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 *This deserves it's own section.*
 
 * [ ] Write a better GitHub landing page;
-* [ ] Write better deployment instructions;
+* [ ] Write better deployment instructions, possibly including a GIF file of the deployment process;
 * [ ] Write documentation for this project;
 * [ ] Provide inline documentation (i.e. within the Project folder structure) as Markdown files;
 * [ ] Evaluate [Read the Docs](https://readthedocs.org/) - this might have to be it's own project;
@@ -64,3 +67,4 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 
 * [ ] Compile PowerShell scripts into an EXE and deploy as a Windows Service. This would be running continuously so the design might have to be changed to avoid overruns and hogging the machine resources;
 * [ ] Adapt SQL Monitor for the Cloud (e.g. as an Azure Runbook, AWS Lambda Function, etc.);
+* [ ] Create a UI for manual running/testing, possibly using something like [PoshGUI](https://poshgui.com/);

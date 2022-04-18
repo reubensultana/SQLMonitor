@@ -2,11 +2,25 @@
 SET NOCOUNT ON;
 
 SELECT 
-    [ServerName], [LoginName], [Type], [CreateDate], [ModifyDate], 
+    [ServerName], 
+    [LoginName], 
+    [Type], 
+    [CreateDate], 
+    [ModifyDate], 
     CONVERT(datetime, LOGINPROPERTY([LoginName], 'PasswordLastSetTime')) AS [PasswordLastSet],
-    [DefaultDatabase], [DefaultLanguage], [IsDisabled], [IsPolicyChecked], [IsExpirationChecked], 
-    SUM([sysadmin]) AS [sysadmin], SUM([securityadmin]) AS [securityadmin], SUM([serveradmin]) AS [serveradmin], SUM([setupadmin]) AS [setupadmin], 
-    SUM([processadmin]) AS [processadmin], SUM([diskadmin]) AS [diskadmin], SUM([dbcreator]) AS [dbcreator], SUM([bulkadmin]) AS [bulkadmin],
+    [DefaultDatabase], 
+    [DefaultLanguage], 
+    [IsDisabled], 
+    [IsPolicyChecked], 
+    [IsExpirationChecked], 
+    SUM([sysadmin]) AS [sysadmin], 
+    SUM([securityadmin]) AS [securityadmin], 
+    SUM([serveradmin]) AS [serveradmin], 
+    SUM([setupadmin]) AS [setupadmin], 
+    SUM([processadmin]) AS [processadmin], 
+    SUM([diskadmin]) AS [diskadmin], 
+    SUM([dbcreator]) AS [dbcreator], 
+    SUM([bulkadmin]) AS [bulkadmin],
     COALESCE(d.[permission_name], '') AS [SecurablesPermissions]
 FROM (
     SELECT 

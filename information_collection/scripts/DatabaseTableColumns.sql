@@ -69,13 +69,13 @@ DEALLOCATE d1
 
 -- return data
 SELECT 
-    [server_name]
-    ,[table_catalog]
-    ,[table_schema]
-    ,[table_name]
-    ,[column_name]
-    ,[ordinal_position]
-    ,[data_type]
-    ,[length/precision]
+    [server_name] AS [ServerName]
+    ,[table_catalog] AS [DatabaseName]
+    ,[table_schema] AS [TableSchema]
+    ,[table_name] AS [TableName]
+    ,[column_name] AS [ColumnName]
+    ,[ordinal_position] AS [OrdinalPosition]
+    ,[data_type] AS [DataType]
+    ,[length/precision] AS [LengthOrPrecision]
 FROM #server_databases_columns
 ORDER BY [table_catalog], [table_schema], [table_name], [ordinal_position];

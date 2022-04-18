@@ -47,9 +47,13 @@ EXEC sp_executesql @SQLCmd;
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 SET NOCOUNT ON;
 SELECT 
-    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS ServerName,
-    j.[job_id] AS [JobID], j.[name] AS [JobName], j.[Enabled], msdb.dbo.SQLAGENT_SUSER_SNAME(j.owner_sid) AS [JobOwner],
-    j.[date_created] AS [DateCreated], j.[date_modified] AS [DateModified],
+    CONVERT(nvarchar(128), SERVERPROPERTY('ServerName')) AS [ServerName],
+    j.[job_id] AS [JobID], 
+    j.[name] AS [JobName], 
+    j.[Enabled], 
+    msdb.dbo.SQLAGENT_SUSER_SNAME(j.owner_sid) AS [JobOwner],
+    j.[date_created] AS [DateCreated], 
+    j.[date_modified] AS [DateModified],
     -- job details with step/s as XML
     CAST((
         SELECT 
