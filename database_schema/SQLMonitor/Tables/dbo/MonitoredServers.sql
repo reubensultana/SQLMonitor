@@ -15,6 +15,8 @@ CREATE TABLE [dbo].[MonitoredServers] (
     [ServerDomain]		[nvarchar] (15) NOT NULL,		-- the server domain name
 	[ServerOrder]       [smallint] NOT NULL,            -- result set ordering - used to define a specific order how servers are processed
     [SqlVersion]        [numeric] (6, 2) NULL,          -- dbms version - may have to be used for version-specific scripts
+    [SqlLoginName]      [nvarchar] (128) NULL,          -- SQL Login used instead of Windows Authentication; if not specified, the Windows Authentication password is used
+    [SqlLoginSecret]    [varbinary] (8000) NULL,          -- The password used for the Sql Login; TODO: encrypt the secret value!!
     [RecordStatus]      [char] (1) NOT NULL,            -- record status - used to determine if server will be processed or not
     [RecordCreated]     [datetime2] (0) NOT NULL        -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]
@@ -59,9 +61,9 @@ ALTER TABLE dbo.MonitoredServers ADD CONSTRAINT
 	CK_MonitoredServers_RecordStatus CHECK (RecordStatus LIKE '[ADH]')
 GO
 
--- default constraint on RecordCreated = CURRENT_TIMESTAMP
+-- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE dbo.MonitoredServers ADD CONSTRAINT
-	DF_MonitoredServers_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
+	DF_MonitoredServers_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
 GO
 
 -- TODO: create trigger firing when RecordStatus is set to "D"

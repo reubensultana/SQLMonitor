@@ -1,12 +1,10 @@
 param(
     [Parameter(Position=0, Mandatory=$true)] [ValidateNotNullOrEmpty()] [Microsoft.SqlServer.Management.Smo.Server] $MonitorSqlConnection,
     [Parameter(Position=1, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorDatabaseName,
-    [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorStagingSchema,
-
+    [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorStagingSchema,     # <-- What was my reasoning to crate a Staging schema??!
     [Parameter(Position=3, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $RemoteSqlInstance,
     [Parameter(Position=4, Mandatory=$false)] [PSCredential] $RemoteSqlAuthCredential,
     [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [System.Data.DataTable] $ScriptsDataSet,
-
     [Parameter(Position=6, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $LogFilePath
 )
 <#

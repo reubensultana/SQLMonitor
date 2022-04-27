@@ -6,12 +6,12 @@ IF OBJECT_ID('[dbo].[ReportRecipients]') IS NOT NULL
 GO
 
 CREATE TABLE [dbo].[ReportRecipients] (
-    [ReportRecipientID] [int] IDENTITY(1,1) NOT NULL,
-    [RecipientName] [varchar](50) NOT NULL,
+    [ReportRecipientID]     [int] IDENTITY(1,1) NOT NULL,
+    [RecipientName]         [varchar](50) NOT NULL,
     [RecipientEmailAddress] [varchar](65) NOT NULL,
-    [SendingOrder] [tinyint] NOT NULL DEFAULT(0),
-    [RecordStatus] [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
-    [RecordCreated] [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
+    [SendingOrder]          [tinyint] NOT NULL DEFAULT(0),
+    [RecordStatus]          [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
+    [RecordCreated]         [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]
 GO
 
@@ -50,9 +50,9 @@ ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
 	CK_ReportRecipient_RecordStatus CHECK (RecordStatus LIKE '[ADH]')
 GO
 
--- default constraint on RecordCreated = CURRENT_TIMESTAMP
+-- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
-	DF_ReportRecipient_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
+	DF_ReportRecipient_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
 GO
 
 

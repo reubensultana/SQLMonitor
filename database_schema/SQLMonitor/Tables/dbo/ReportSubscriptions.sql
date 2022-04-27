@@ -6,11 +6,11 @@ IF OBJECT_ID('[dbo].[ReportSubscriptions]') IS NOT NULL
 GO
 
 CREATE TABLE [dbo].[ReportSubscriptions] (
-    [ReportSubscriptionID] [int] IDENTITY(1,1) NOT NULL,
-    [ReportRecipient] [int] NOT NULL,
-    [ReportID] [int] NULL,                    -- can be NULL to represent "all reports" option
-    [RecordStatus] [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
-    [RecordCreated] [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
+    [ReportSubscriptionID]  [int] IDENTITY(1,1) NOT NULL,
+    [ReportRecipient]       [int] NOT NULL,
+    [ReportID]              [int] NULL,                    -- can be NULL to represent "all reports" option
+    [RecordStatus]          [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
+    [RecordCreated]         [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]
 GO
 
@@ -32,9 +32,9 @@ ALTER TABLE [dbo].[ReportSubscriptions] ADD CONSTRAINT
 	CK_ReportSubscription_RecordStatus CHECK (RecordStatus LIKE '[ADH]')
 GO
 
--- default constraint on RecordCreated = CURRENT_TIMESTAMP
+-- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [dbo].[ReportSubscriptions] ADD CONSTRAINT
-	DF_ReportSubscription_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
+	DF_ReportSubscription_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
 GO
 
 

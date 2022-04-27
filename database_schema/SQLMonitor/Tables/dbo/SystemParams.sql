@@ -6,12 +6,12 @@ DROP TABLE [dbo].[SystemParams]
 GO
 
 CREATE TABLE [dbo].[SystemParams] (
-    [ParamID] [int] IDENTITY(1,1) NOT NULL,
-    [ParamName] [nvarchar] (128) COLLATE Latin1_General_CI_AS NOT NULL,
-    [ParamValue] [nvarchar] (4000) COLLATE Latin1_General_CI_AS NOT NULL,
-    [ParamDescription] [nvarchar] (4000) COLLATE Latin1_General_CI_AS NOT NULL,
-    [RecordStatus] [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
-    [RecordCreated] [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
+    [ParamID]           [int] IDENTITY(1,1) NOT NULL,
+    [ParamName]         [nvarchar] (128) COLLATE Latin1_General_CI_AS NOT NULL,
+    [ParamValue]        [nvarchar] (4000) COLLATE Latin1_General_CI_AS NOT NULL,
+    [ParamDescription]  [nvarchar] (4000) COLLATE Latin1_General_CI_AS NOT NULL,
+    [RecordStatus]      [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
+    [RecordCreated]     [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
 ) ON [TABLES]
 GO
 
@@ -32,9 +32,9 @@ ALTER TABLE [dbo].[SystemParams] ADD CONSTRAINT
 	CK_SystemParams_RecordStatus CHECK (RecordStatus LIKE '[ADH]')
 GO
 
--- default constraint on RecordCreated = CURRENT_TIMESTAMP
+-- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [dbo].[SystemParams] ADD CONSTRAINT
-	DF_SystemParams_RecordCreated DEFAULT CURRENT_TIMESTAMP FOR RecordCreated
+	DF_SystemParams_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
 GO
 
 -- unique constraint on ParamName
