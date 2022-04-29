@@ -1,19 +1,20 @@
 <#
 .SYNOPSIS
-    The core functionality of this solution.
+    SQL Server monitoring tool based on PowerShell v3 and TSQL scripts only
 
 .DESCRIPTION
-    The SqlMonitor is more of a monitoring solution. This allows DBAs to run preset scripts or TSQL code against a number of SQL Server instances, according to time-based rules
-    defined by what I called "Profiles". The mmonitoring part allows DBAs to exewcute the scripts and store the results in a central location for reporting, and trend analysis, etc.
-    The SqlMonitor also performs data collection of key information from the Instances, hence providing DBAs with a centralised Configuration Management Database (CMDB) of the estate 
-    being managed. This, in my opinion, is crucial for the smooth running of an organisation and allows the DBA to answer questions such as:
-    > "how many SQL Servers doe we have?"
-    > "what licences are in use?"
-    > "when was the last time a specific database was backed up?"
-    > "is this SQL Server instance running?"
-    > "how many logins have not reset ther password for more than 90/120/etc. days?"
-    Obtaining the information to be able to answer these questions has been a key part of the development of this solution. The standard set of scripts available by default are those which 
-    I would have used, on more than one occassion, to help me answer questions from Management, Auditors, a Data Owner, or simply to help me do my job better.
+    SqlMonitor is more of a monitoring solution. This allows DBAs to run preset scripts or TSQL code against a number of SQL Server instances, according to time-based rules defined by what I called "Profiles". The monitoring part allows DBAs to execute the scripts and store the results in a central location for reporting, and trend analysis, etc.
+
+    SqlMonitor also performs data collection of key information from the Instances, hence providing DBAs with a centralised Configuration Management Database (CMDB) of the estate being managed. This, in my opinion, is crucial for the smooth running of an organisation and allows the DBA to answer questions such as:
+
+    * "how many SQL Servers doe we have?"
+    * "what licences are in use?"
+    * "when was the last time a specific database was backed up?"
+    * "is this SQL Server instance running?"
+    * "how many logins have not reset their password for more than 90/120/etc. days?"
+
+    Obtaining the information to be able to answer these questions has been a key part of the development of this solution. The standard set of scripts available by default are those which I would have used, on more than one occasion, to help me answer questions from Management, Auditors, a Data Owner, or simply to help me do my job better.
+
     Since the SqlMonitor is not bound to these scripts, you can write your own code (test it, of course) and add it to the solution. The only other requirement is that you'd have to build
     the table structure/s which will be storing the data being collected. A guide to perform this task is (or will be) included in the final version of the solution.
 
@@ -48,43 +49,81 @@
     Show the current version number.
 
 .EXAMPLE
-    .\Get-ServerInfo.ps1 -MonitorSqlInstance "localhost,14330" -MonitorDatabaseName "SQLMonitor" -MonitorConnectTimeout 30 -MonitorProfile "Monitor" -MonitorProfileType "Daily" -QueryTimeout 360
-    Will run the function (if all input parameters are present and valid)
+    Run the Daily Profile for all Active SQL Server instances
+        .\Get-ServerInfo.ps1 
+            -MonitorSqlInstance "localhost,14330" `
+            -MonitorDatabaseName "SQLMonitor" `
+            -MonitorConnectTimeout 30 `
+            -MonitorProfile "Monitor" `
+            -MonitorProfileType "Daily" `
+            -QueryTimeout 360
 
+.EXAMPLE
+    Get the codebase version number
+        .\Get-ServerInfo.ps1 -Version
+        .\Get-ServerInfo.ps1 -v
+        .\Get-ServerInfo.ps1 -ver
+
+.LINK
+    https://github.com/reubensultana/SQLMonitor
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Monitor')]
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(
+            Mandatory=$true, 
+            ParameterSetName = 'Monitor',
+            HelpMessage="Enter the SQLMonitor repository Instance name.")]
         [ValidateNotNullOrEmpty()]
         [string] $MonitorSqlInstance
     ,
-    [Parameter(Mandatory=$true)]
+    [Parameter(
+            Mandatory=$true, 
+            ParameterSetName = 'Monitor',
+            HelpMessage="Enter the SQLMonitor database name.")]
         [ValidateNotNullOrEmpty()]
         [string] $MonitorDatabaseName
     ,
-    [Parameter(Mandatory=$true)]
-        [ValidateNotNull()] [int]
-        $MonitorConnectTimeout = 30
+    [Parameter(
+            Mandatory=$true, 
+            ParameterSetName = 'Monitor',
+            HelpMessage="Enter a value between 0 and 65534 for the Connection Timeout.")]
+        [ValidateRange(0,65534)]
+        [ValidateNotNull()]
+        [int] $MonitorConnectTimeout = 30
     ,
-    [Parameter(Mandatory=$true)]
+    [Parameter(
+            Mandatory=$true, 
+            ParameterSetName = 'Monitor',
+            HelpMessage="Enter the SQLMonitor Profile name.")]
         [ValidateNotNullOrEmpty()]
         [string] $MonitorProfile
     ,
-    [Parameter(Mandatory=$true)]
+    [Parameter(
+            Mandatory=$true, 
+            ParameterSetName = 'Monitor',
+            HelpMessage="Enter the SQLMonitor Profile Type.")]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Annual", ”Monthly”, ”Weekly”, "Daily", "Hourly", "Minute", "Manual")]
         [string] $MonitorProfileType
     ,
-    [Parameter(Mandatory=$true)]
+    [Parameter(
+            Mandatory=$true, 
+            ParameterSetName = 'Monitor',
+            HelpMessage="Enter a value between 1 and 65535 for the Query Timeout.")]
+        [ValidateRange(1,65535)]
         [ValidateNotNull()]
         [int] $QueryTimeout = 360
     ,
-    [Parameter(Mandatory=$false)]
+    [Parameter(
+            Mandatory=$false, 
+            ParameterSetName = 'Version')]
+        [Alias("v","ver")]
         [switch] $Version
 )
 
 if ($true -eq $Version) {
-    Write-Output "Version: 2.0.0"
+    Write-Output "SqlMonitor Version 2.0.0"
+    Write-Output $("© Reuben Sultana - {0}" -f $(Get-Date -Format "yyyy"))
     return
 }
 

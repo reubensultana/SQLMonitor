@@ -5,8 +5,8 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 ## Functionality
 
 * [x] Modify functionality to use [DBA Tools](https://dbatools.io) module instead of writing my own;
-* [ ] Split main code functionality to use PoSh Runspaces;
-* [ ] Enhance logging, writing to text files in a specific folder;
+* [x] Split main code functionality to use PoSh Runspaces;
+* [x] Enhance logging, writing to text files in a specific folder;
 * [ ] Functionality to load log files to the database (?);
 * [ ] Functionality to clear log files older than N days/weeks/months;
 * [ ] Modify deployment scripts to avoid hard-coding the Database Name;
@@ -32,8 +32,8 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 * [ ] Compile Posh functions as a SqlMonitor Module;
 * [ ] Deployment instructions: Add `Import-Module dbatools` to the `$Profile` of the account running this solution;
 * [ ] Option to write collected information to CSV or Excel files (use `ImportExcel` module) instead of the SQLMonitor database;
-* [ ] Securely store SQL authentication parameters for each server in the database;
-* [ ] Convert embeddded TSQL code to stored procedures;
+* [x] Securely store SQL authentication parameters for each server in the database;
+* [ ] Convert embedded TSQL code to stored procedures;
 
 ## Scripts
 
@@ -66,5 +66,5 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 ## Nice To Have
 
 * [ ] Compile PowerShell scripts into an EXE and deploy as a Windows Service. This would be running continuously so the design might have to be changed to avoid overruns and hogging the machine resources;
-* [ ] Adapt SQL Monitor for the Cloud (e.g. as an Azure Runbook, AWS Lambda Function, etc.);
+* [ ] Adapt SQL Monitor for the Cloud (e.g. as an Azure Runbook, AWS Lambda Function, etc.). The database will also need refactoring to support Azure SQL DB for example;
 * [ ] Create a UI for manual running/testing, possibly using something like [PoshGUI](https://poshgui.com/);

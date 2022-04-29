@@ -17,15 +17,11 @@ SELECT
     ,[ServerOrder]
     ,[SqlVersion]
     ,[SqlLoginName]
-    ,[dbo].[udf_decryptvaluebycert] ([SqlLoginSecret], 'SQLServersMonitor') AS [SqlLoginSecret]
+    ,[dbo].[udfDecryptValueByCert] ([SqlLoginSecret], 'SQLServersMonitor') AS [SqlLoginSecret]
     ,[RecordStatus]
     ,[RecordCreated]
 FROM [dbo].[MonitoredServers];
 GO
-
-USE [master]
-GO
-
 
 CREATE TRIGGER [dbo].[trgMonitoredServersE]
     ON [dbo].[vwMonitoredServers]
@@ -48,7 +44,7 @@ BEGIN
         ,[SqlLoginName]     = i.[SqlLoginName]
         ,[SqlLoginSecret]   = ENCRYPTBYCERT(CERT_ID('SQLServersMonitor'), i.[SqlLoginSecret])
         ,[RecordStatus]     = i.[RecordStatus]
-        ,[RecordCreated]    = i.[RecordCreated]
+        --,[RecordCreated]    = i.[RecordCreated]
     FROM inserted i
         INNER JOIN [dbo].[MonitoredServers] ms ON ms.[ServerName] = i.[ServerName];
 END   
@@ -85,4 +81,7 @@ BEGIN
     FROM inserted i
 END
 
+GO
+
+USE [master]
 GO
