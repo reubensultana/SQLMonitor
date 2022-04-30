@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[ReportRecipients]') IS NOT NULL
     DROP TABLE [dbo].[ReportRecipients];
 GO
@@ -12,7 +9,7 @@ CREATE TABLE [dbo].[ReportRecipients] (
     [SendingOrder]          [tinyint] NOT NULL DEFAULT(0),
     [RecordStatus]          [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
     [RecordCreated]         [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -21,7 +18,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Re
 ALTER TABLE [dbo].[ReportRecipients]
 ADD  CONSTRAINT [PK_ReportRecipient] PRIMARY KEY CLUSTERED ([ReportRecipientID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 -- nonclustered index on ReportID and RecipientEmailAddress to enforce uniqueness
@@ -30,15 +27,16 @@ CREATE UNIQUE NONCLUSTERED INDEX [IDX_ReportRecipients_EmailAddress]
     ON [dbo].[ReportRecipients] ( [RecipientEmailAddress] ASC )
 WITH (
     PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, 
-    ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 
 -- check constraint on RecipientEmailAddress - allowed values are properly formed company email addresses
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
-	CK_ReportRecipient_RecipientEmailAddress CHECK (RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' 
-                                                    -- AND RecipientEmailAddress LIKE '%_@mycompany.com'
-						       )
+	CK_ReportRecipient_RecipientEmailAddress CHECK (
+        RecipientEmailAddress NOT LIKE '%[^a-z,0-9,@,.]%' 
+        -- AND RecipientEmailAddress LIKE '%_@mycompany.com'
+    )
 GO
 
 -- default constraint on RecordStatus = "A"
@@ -53,8 +51,4 @@ GO
 -- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [dbo].[ReportRecipients] ADD CONSTRAINT
 	DF_ReportRecipient_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
-GO
-
-
-USE [master]
 GO

@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListDatabaseGrowthTrend]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListDatabaseGrowthTrend]
 GO
@@ -114,11 +111,6 @@ BEGIN
     END
 END
 GO
-
-
-USE [master]
-GO
-
 
 /*
 USE [SQLMonitor]

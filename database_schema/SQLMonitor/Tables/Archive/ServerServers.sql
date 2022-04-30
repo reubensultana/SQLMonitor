@@ -1,10 +1,5 @@
-USE [SQLMonitorArchive]
-GO
-
 IF OBJECT_ID('[Archive].[ServerServers]') IS NOT NULL
-BEGIN
-    DROP TABLE [Archive].[ServerServers];
-END
+DROP TABLE [Archive].[ServerServers];
 GO
 
 CREATE TABLE [Archive].[ServerServers](
@@ -19,7 +14,7 @@ CREATE TABLE [Archive].[ServerServers](
     [CatalogConnection] [nvarchar](128) NULL,
     [RecordStatus] [char] (1) NOT NULL,         -- record status - used to determine if the record is active or not
     [RecordCreated] [datetimeoffset] (7) NOT NULL    -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -28,9 +23,5 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[Archive]
 ALTER TABLE [Archive].[ServerServers]
 ADD  CONSTRAINT [PK_ServerServers_Archive] PRIMARY KEY CLUSTERED ([ServerServerID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
-GO
-
-
-USE [master]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO

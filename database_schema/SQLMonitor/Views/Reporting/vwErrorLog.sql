@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[Reporting].[vwErrorLog]') IS NOT NULL
 DROP VIEW [Reporting].[vwErrorLog]
 GO
@@ -54,7 +51,4 @@ SELECT
         [ReasonEndPoint]
     ) AS [ReasonForFailure]
 FROM cteFailedLoginAttempts
-GO
-
-USE [master]
 GO

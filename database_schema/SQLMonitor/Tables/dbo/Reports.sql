@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[Reports]') IS NOT NULL
     DROP TABLE [dbo].[Reports];
 GO
@@ -15,7 +12,7 @@ CREATE TABLE [dbo].[Reports] (
     [CreateChart]       [bit] NOT NULL DEFAULT(0),    -- flag to instruct PowerShell to create a chart with the results - requires a specific output format
     [RecordStatus]      [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
     [RecordCreated]     [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -24,7 +21,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Re
 ALTER TABLE [dbo].[Reports]
 ADD  CONSTRAINT [PK_Report] PRIMARY KEY CLUSTERED ([ReportID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 
@@ -50,8 +47,4 @@ GO
 -- default constraint on ExecuteScript = ""
 ALTER TABLE [dbo].[Reports] ADD CONSTRAINT
 	DF_Report_ExecuteScript DEFAULT N'' FOR [ExecuteScript]
-GO
-
-
-USE [master]
 GO

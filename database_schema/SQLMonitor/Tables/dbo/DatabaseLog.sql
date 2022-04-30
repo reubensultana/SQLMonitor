@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF EXISTS (SELECT * FROM sys.triggers WHERE parent_class_desc = 'DATABASE' AND name = N'ddlDatabaseTriggerLog')
 DISABLE TRIGGER [ddlDatabaseTriggerLog] ON DATABASE
 GO
@@ -18,7 +15,7 @@ CREATE TABLE [dbo].[DatabaseLog](
 	[Object] 			[nvarchar] (128) COLLATE Latin1_General_CI_AS NULL,
 	[TSQL] 				[nvarchar](max) COLLATE Latin1_General_CI_AS NOT NULL,
 	[XmlEvent] 			[xml] NOT NULL
-) ON [TABLES]
+)
 GO
 
 -- clustered index on DatabaseLogID
@@ -26,14 +23,10 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Da
 ALTER TABLE [dbo].[DatabaseLog]
 ADD CONSTRAINT [PK_DatabaseLog] PRIMARY KEY CLUSTERED ([DatabaseLogID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 -- default constraint on PostTime = SYSDATETIMEOFFSET()
 ALTER TABLE [dbo].[DatabaseLog] ADD CONSTRAINT 
     [DF_DatabaseLog_PostTime]  DEFAULT (SYSDATETIMEOFFSET()) FOR [PostTime]
-GO
-
-
-USE [master]
 GO

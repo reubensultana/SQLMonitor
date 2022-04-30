@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspBlitzResults]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspBlitzResults] 
 GO
@@ -65,7 +62,3 @@ GO
 -- EXEC [Reporting].[uspBlitzResults] @ServerOrder=NULL
 -- EXEC [Reporting].[uspBlitzResults] @ServerOrder=1, @Priority = 1, @CheckID = 1; -- Backup; Backups Not Performed Recently
 -- EXEC [Reporting].[uspBlitzResults] @ServerOrder=1, @Priority = 1, @CheckID = 2; -- Backup; Full Recovery Model w/o Log Backups
-
-
-USE [master]
-GO

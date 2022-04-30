@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListServerFreeSpaceTrend]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListServerFreeSpaceTrend]
 GO
@@ -46,8 +43,4 @@ BEGIN
         AND sfs.[Drive] LIKE @DriveLetter
     END
 END
-GO
-
-
-USE [master]
 GO

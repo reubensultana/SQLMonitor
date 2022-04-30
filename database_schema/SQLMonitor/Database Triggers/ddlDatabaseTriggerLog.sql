@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF EXISTS (SELECT * FROM sys.triggers WHERE parent_class_desc = 'DATABASE' AND name = N'ddlDatabaseTriggerLog')
 DROP TRIGGER [ddlDatabaseTriggerLog] ON DATABASE
 GO
@@ -50,8 +47,4 @@ END;
 GO
 
 ENABLE TRIGGER [ddlDatabaseTriggerLog] ON DATABASE
-GO
-
-
-USE [master]
 GO

@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF NOT EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'Monitor')
     EXEC sp_executesql N'CREATE SCHEMA [Monitor] AUTHORIZATION [dbo];';
 GO
@@ -15,16 +12,4 @@ GO
 
 IF NOT EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'Archive')
     EXEC sp_executesql N'CREATE SCHEMA [Archive] AUTHORIZATION [dbo];';
-GO
-
-----------
-USE [SQLMonitorArchive]
-GO
-
-IF NOT EXISTS(SELECT 1 FROM sys.schemas WHERE name = 'Archive')
-    EXEC sp_executesql N'CREATE SCHEMA [Archive] AUTHORIZATION [dbo];';
-GO
-
-----------
-USE [master]
 GO

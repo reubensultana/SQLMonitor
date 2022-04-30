@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[uspPrintError]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[uspPrintError]
 GO
@@ -31,8 +28,4 @@ BEGIN
     PRINT ERROR_MESSAGE();
 END;
 
-GO
-
-
-USE [master]
 GO

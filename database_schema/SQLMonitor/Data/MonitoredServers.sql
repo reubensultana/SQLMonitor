@@ -1,5 +1,3 @@
-USE [SQLMonitor]
-GO
 SET NOCOUNT ON;
 
 /* ----- dbo.MonitoredServers ----- */

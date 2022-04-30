@@ -1,3 +1,5 @@
+SET NOCOUNT ON;
+
 /* ----- dbo.SystemParams ----- */
 -- TRUNCATE TABLE [dbo].[SystemParams];
 -- data archival and retention params

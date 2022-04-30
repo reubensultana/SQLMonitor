@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[vwProfile]') IS NOT NULL
 DROP VIEW [dbo].[vwProfile]
 GO
@@ -24,7 +21,4 @@ SELECT
     p.[ExecutionOrder]
 FROM [dbo].[Profile] p
 WHERE p.[RecordStatus] = 'A';
-GO
-
-USE [master]
 GO

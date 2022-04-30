@@ -1,3 +1,5 @@
+SET NOCOUNT ON;
+
 /* ----- dbo.ReportSubscriptions ----- */
 
 -- TRUNCATE TABLE [dbo].[ReportSubscriptions]

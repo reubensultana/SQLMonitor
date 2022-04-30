@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListDatabaseIndexUsage]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListDatabaseIndexUsage]
 GO
@@ -36,7 +33,3 @@ END
 GO
 
 -- EXEC [SQLMonitor].[Reporting].[uspListDatabaseIndexUsage] 
-
-
-USE [master]
-GO

@@ -1,3 +1,5 @@
+SET NOCOUNT ON;
+
 /* ----- dbo.Reports ----- */
 /*
 -- NOTE: Watch out for single quotes in the PreExecuteScript and ExecuteScript columns

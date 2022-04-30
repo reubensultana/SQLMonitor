@@ -1,11 +1,8 @@
-USE [SQLMonitor]
+IF OBJECT_ID(N'[Staging].[uspMoveStagingData]') IS NOT NULL
+DROP PROCEDURE [Staging].[uspMoveStagingData] 
 GO
 
-IF OBJECT_ID(N'[Monitor].[uspMoveStagingData]') IS NOT NULL
-DROP PROCEDURE [Monitor].[uspMoveStagingData] 
-GO
-
-CREATE PROCEDURE [Monitor].[uspMoveStagingData] 
+CREATE PROCEDURE [Staging].[uspMoveStagingData] 
     @ProfileName varchar(50),
     @ProfileType varchar(50)
 AS
@@ -57,8 +54,4 @@ BEGIN
     TRUNCATE TABLE [Staging].[ServerTriggers];
 
 END
-GO
-
-
-USE [master]
 GO

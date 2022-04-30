@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[vwMonitoredServers]') IS NOT NULL
 DROP VIEW [dbo].[vwMonitoredServers]
 GO
@@ -81,7 +78,4 @@ BEGIN
     FROM inserted i
 END
 
-GO
-
-USE [master]
 GO

@@ -1,5 +1,3 @@
-USE [SQLMonitor]
-GO
 /*
 DROP TABLE [Archive].[DatabaseBackupHistory]
 DROP TABLE [Archive].[DatabaseConfigurations]

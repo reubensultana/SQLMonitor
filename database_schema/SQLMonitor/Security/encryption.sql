@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 -- database master key
 CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'a$tr0ngP@$$w0rdHere!';
 GO

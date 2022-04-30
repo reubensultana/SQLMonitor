@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[udfDecryptValueByCert]') IS NOT NULL
 DROP VIEW [dbo].[udfDecryptValueByCert]
 GO

@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[dbo].[uspGetReports]') IS NOT NULL
 DROP PROCEDURE [dbo].[uspGetReports]
 GO
@@ -36,8 +33,4 @@ BEGIN
     ORDER BY rr.SendingOrder, rr.RecipientName, r.ExecutionOrder;
 
 END
-GO
-
-
-USE [master]
 GO

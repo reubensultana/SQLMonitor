@@ -1,8 +1,5 @@
-USE [SQLMonitor]
-GO
-
--- EXEC [SQLMonitor].[dbo].[usp_CreateDataMaintenanceProcs] 'REPORT'
--- EXEC [SQLMonitor].[dbo].[usp_CreateDataMaintenanceProcs] 'CREATE'
+-- EXEC [dbo].[usp_CreateDataMaintenanceProcs] 'REPORT'
+-- EXEC [dbo].[usp_CreateDataMaintenanceProcs] 'CREATE'
 
 IF OBJECT_ID(N'[dbo].[usp_CreateDataMaintenanceProcs]') IS NOT NULL
 DROP PROCEDURE [dbo].[usp_CreateDataMaintenanceProcs]
@@ -277,8 +274,5 @@ END
 GO
 
 
-EXEC [SQLMonitor].[dbo].[usp_CreateDataMaintenanceProcs] 'CREATE'
-GO
-
-USE [master]
+EXEC [dbo].[usp_CreateDataMaintenanceProcs] 'CREATE'
 GO

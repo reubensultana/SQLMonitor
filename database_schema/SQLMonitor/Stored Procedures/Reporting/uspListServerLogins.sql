@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListServerLogins]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListServerLogins]
 GO
@@ -32,7 +29,7 @@ BEGIN
           ,[dbcreator]
           ,[bulkadmin]
           ,[SecurablesPermissions]
-    FROM [SQLMonitor].[Monitor].[server_logins]
+    FROM [Monitor].[server_logins]
     WHERE [ServerName] LIKE @ServerName
     AND [RecordStatus] = 'A'
     AND (
@@ -46,19 +43,8 @@ BEGIN
         [dbcreator] = (CASE WHEN @RoleName = 'dbcreator' THEN 1 END) OR
         [bulkadmin] = (CASE WHEN @RoleName = 'bulkadmin' THEN 1 END)
     )
-    ORDER BY 
-        CASE 
-            WHEN [ServerName] LIKE 'CFS%' THEN 1 
-            WHEN [ServerName] LIKE 'STG%' THEN 2 
-            WHEN [ServerName] LIKE 'DEV%' THEN 3 
-            ELSE 4 
-        END, 
-        [Type], [LoginName];
+    ORDER BY [ServerName], [Type], [LoginName];
 END
 GO
 
--- EXEC [SQLMonitor].[Reporting].[uspListServerLogins] 
-
-
-USE [master]
-GO
+-- EXEC [Reporting].[uspListServerLogins] 

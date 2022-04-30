@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[Profile]') IS NOT NULL
     DROP TABLE [dbo].[Profile];
 GO
@@ -15,7 +12,7 @@ CREATE TABLE [dbo].[Profile] (
     [ExecutionOrder]    [tinyint] NOT NULL DEFAULT(0),
     [RecordStatus]      [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
     [RecordCreated]     [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -24,7 +21,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Pr
 ALTER TABLE [dbo].[Profile]
 ADD  CONSTRAINT [PK_Profile] PRIMARY KEY CLUSTERED ([ProfileID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 
@@ -50,8 +47,4 @@ GO
 -- default constraint on ExecuteScript = ""
 ALTER TABLE [dbo].[Profile] ADD CONSTRAINT
 	DF_Profile_ExecuteScript DEFAULT N'' FOR [ExecuteScript]
-GO
-
-
-USE [master]
 GO

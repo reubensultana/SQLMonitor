@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[SystemParams]') IS NOT NULL
 DROP TABLE [dbo].[SystemParams]
 GO
@@ -12,7 +9,7 @@ CREATE TABLE [dbo].[SystemParams] (
     [ParamDescription]  [nvarchar] (4000) COLLATE Latin1_General_CI_AS NOT NULL,
     [RecordStatus]      [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
     [RecordCreated]     [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 -- clustered index on ParamID
@@ -20,7 +17,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Sy
 ALTER TABLE [dbo].[SystemParams]
 ADD  CONSTRAINT [PK_SystemParams] PRIMARY KEY CLUSTERED ([ParamID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 -- default constraint on RecordStatus = "A"
@@ -42,9 +39,5 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Sy
 CREATE UNIQUE NONCLUSTERED INDEX [IX_SystemParams_ParamName] 
 ON [dbo].[SystemParams] ([ParamName] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, DROP_EXISTING = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [TABLES]
-GO
-
-
-USE [master]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90)
 GO

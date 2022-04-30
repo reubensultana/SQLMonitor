@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[ReportSubscriptions]') IS NOT NULL
     DROP TABLE [dbo].[ReportSubscriptions];
 GO
@@ -11,7 +8,7 @@ CREATE TABLE [dbo].[ReportSubscriptions] (
     [ReportID]              [int] NULL,                    -- can be NULL to represent "all reports" option
     [RecordStatus]          [char] (1) NOT NULL,       -- record status - used to determine if the record is active or not
     [RecordCreated]         [datetime2] (0) NOT NULL  -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -20,7 +17,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Re
 ALTER TABLE [dbo].[ReportSubscriptions]
 ADD  CONSTRAINT [PK_ReportSubscription] PRIMARY KEY CLUSTERED ([ReportSubscriptionID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 -- default constraint on RecordStatus = "A"
@@ -35,8 +32,4 @@ GO
 -- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [dbo].[ReportSubscriptions] ADD CONSTRAINT
 	DF_ReportSubscription_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
-GO
-
-
-USE [master]
 GO

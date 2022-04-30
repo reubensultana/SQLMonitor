@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListFailedLogins]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListFailedLogins]
 GO
@@ -98,8 +95,5 @@ GO
 
 /*
 @ECHO OFF
-For /F "Tokens=1-3 Delims=/:. " %%d In ("%Date%") Do bcp "EXEC [SQLMonitor].[Reporting].[uspListFailedLogins];" queryout ".\_export\FailedLogins_%%f%%e%%d.txt" -S "%1" -T -c -k -t"|"
+For /F "Tokens=1-3 Delims=/:. " %%d In ("%Date%") Do bcp "EXEC [Reporting].[uspListFailedLogins];" queryout ".\_export\FailedLogins_%%f%%e%%d.txt" -S "%1" -d "SqlMonitor" -T -c -k -t"|"
 */
-
-USE [master]
-GO

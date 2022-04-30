@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListAvailableServers]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListAvailableServers]
 GO
@@ -35,7 +32,3 @@ END
 GO
 
 -- EXEC [SQLMonitor].[Reporting].[uspListAvailableServers] 
-
-
-USE [master]
-GO

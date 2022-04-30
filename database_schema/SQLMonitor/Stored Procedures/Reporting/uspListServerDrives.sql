@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListServerDrives]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListServerDrives]
 GO
@@ -30,8 +27,4 @@ BEGIN
         ORDER BY [LetterOrder], [DriveLetter] ASC
     END
 END
-GO
-
-
-USE [master]
 GO

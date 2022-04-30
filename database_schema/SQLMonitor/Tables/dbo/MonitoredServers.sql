@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[dbo].[MonitoredServers]') IS NOT NULL
 DROP TABLE [dbo].[MonitoredServers];
 GO
@@ -19,7 +16,7 @@ CREATE TABLE [dbo].[MonitoredServers] (
     [SqlLoginSecret]    [varbinary] (8000) NULL,          -- The password used for the Sql Login; TODO: encrypt the secret value!!
     [RecordStatus]      [char] (1) NOT NULL,            -- record status - used to determine if server will be processed or not
     [RecordCreated]     [datetime2] (0) NOT NULL        -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -28,7 +25,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Mo
 ALTER TABLE [dbo].[MonitoredServers]
 ADD  CONSTRAINT [PK_MonitoredServers] PRIMARY KEY CLUSTERED ([ServerId] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 -- unique constraint on ServerName AND TcpPort
@@ -36,7 +33,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Mo
 CREATE UNIQUE NONCLUSTERED INDEX [IX_MonitoredServers_ServerName_TcpPort] 
 ON [dbo].[MonitoredServers] ([ServerName] ASC, [SqlTcpPort] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, DROP_EXISTING = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90)
 GO
 
 -- unique constraint on ServerIpAddress AND TcpPort
@@ -44,7 +41,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[dbo].[Mo
 CREATE UNIQUE NONCLUSTERED INDEX [IX_MonitoredServers_ServerIpAddress_TcpPort] 
 ON [dbo].[MonitoredServers] ([ServerIpAddress] ASC, [SqlTcpPort] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, DROP_EXISTING = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 90)
 GO
 
 -- default constraint on ServerOrder = "0"
@@ -67,7 +64,3 @@ ALTER TABLE dbo.MonitoredServers ADD CONSTRAINT
 GO
 
 -- TODO: create trigger firing when RecordStatus is set to "D"
-
-
-USE [master]
-GO

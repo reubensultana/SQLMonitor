@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[Reporting].[uspListDatabaseMissingIndex]') IS NOT NULL
 DROP PROCEDURE [Reporting].[uspListDatabaseMissingIndex]
 GO
@@ -37,7 +34,3 @@ END
 GO
 
 -- EXEC [SQLMonitor].[Reporting].[uspListDatabaseMissingIndex] 
-
-
-USE [master]
-GO

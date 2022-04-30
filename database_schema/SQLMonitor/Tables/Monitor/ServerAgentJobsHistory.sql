@@ -1,10 +1,5 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[Monitor].[ServerAgentJobsHistory]') IS NOT NULL
-BEGIN
-    DROP TABLE [Monitor].[ServerAgentJobsHistory];
-END
+DROP TABLE [Monitor].[ServerAgentJobsHistory];
 GO
 
 CREATE TABLE [Monitor].[ServerAgentJobsHistory](
@@ -19,7 +14,7 @@ CREATE TABLE [Monitor].[ServerAgentJobsHistory](
     [Message] [nvarchar](4000) NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,        -- record status - used to determine if the record is active or not
     [RecordCreated] [datetimeoffset] (7) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES]
+)
 GO
 
 
@@ -28,7 +23,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[Monitor]
 ALTER TABLE [Monitor].[ServerAgentJobsHistory]
 ADD  CONSTRAINT [PK_ServerAgentJobsHistory] PRIMARY KEY CLUSTERED ([ServerAgentJobsHistoryID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 -- indexes created for performance
@@ -62,8 +57,4 @@ GO
 -- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [Monitor].[ServerAgentJobsHistory] ADD CONSTRAINT
 	DF_ServerAgentJobsHistory_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
-GO
-
-
-USE [master]
 GO

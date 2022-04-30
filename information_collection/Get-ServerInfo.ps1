@@ -302,6 +302,8 @@ function Get-ServerInfo() {
     foreach ($Instance in $InstancesDataSet) {
         # extract parts
         $ServerName = $Instance.ServerName
+        $ServerAlias = $Instance.ServerAlias
+        $ServerIpAddress = $Instance.ServerIpAddress
         $TcpPort = $Instance.SqlTcpPort
         # check the TcpPort
         if ($TcpPort -gt 0) {
@@ -310,10 +312,15 @@ function Get-ServerInfo() {
             if ($true -eq $ServerName.Contains("\")) {$ServerName = $ServerName.Split("\")[0]}
             # check TCP connection on the specified port and stop execution on failure
             $IsAlive = Test-Port -HostName $ServerName -Port $TcpPort
+            # test using ServerAlias and update the ServerName property if the test was successful
+            if ($false -eq $IsAlive) { $IsAlive = Test-Port -HostName $ServerAlias -Port $TcpPort } else { $Instance.ServerName = $ServerAlias }
+            # test using ServerIpAddress and update the ServerName property if the test was successful
+            if ($false -eq $IsAlive) { $IsAlive = Test-Port -HostName $ServerIpAddress -Port $TcpPort } else { $Instance.ServerName = $ServerIpAddress }
             # add to the array
             if ($true -eq $IsAlive) {
-                $AvailableInstancesDataSet.Add($Server.ToString()) > $null # suppress output
-                Write-Log -LogFilePath $LogFilePath -LogEntry $("Adding {0} to the actual list." -f $InstanceName)
+                $Instance.isAlive = 1
+                #$AvailableInstancesDataSet.Add($Server.ToString()) > $null # suppress output
+                #Write-Log -LogFilePath $LogFilePath -LogEntry $("Adding {0} to the actual list." -f $InstanceName)
             }
             else { 
                 Write-Log -LogFilePath $LogFilePath -LogEntry $("Instance {0} could not be reached." -f $InstanceName)
@@ -323,6 +330,7 @@ function Get-ServerInfo() {
             Write-Log -LogFilePath $LogFilePath -LogEntry $("The server {0} does not have a valid TCP Port number." -f $ServerName)
         }
     }
+    $AvailableInstancesDataSet = $InstancesDataSet | Where-Object -Property isAlive -eq 1 | Select-Object -Property ServerName, SqlTcpPort, SqlLogin, SqlLoginSecret
     # check again...
     if ($AvailableInstancesDataSet.Count -eq 0) {
         Write-Log -LogFilePath $LogFilePath -LogEntry "No valid SQL Server instances were provided."
@@ -349,7 +357,12 @@ function Get-ServerInfo() {
     # start jobs on all servers
     if ( ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Count -gt 0 ) -and ($AvailableInstancesDataSet.Count -gt 0) ) {
         foreach ($InstanceName in $AvailableInstancesDataSet) {
-            Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $InstanceName)
+            $ServerName = $("{0},{1}" -f $InstanceName.ServerName, $InstanceName.SqlTcpPort)
+            [String] $SqlLogin = $InstanceName.SqlLogin
+            [SecureString] $SqlLoginSecret = ConvertTo-SecureString $($InstanceName.SqlLoginSecret) -AsPlainText -Force
+            $SqlAuthCredential = New-Object System.Management.Automation.PSCredential ($SqlLogin, $SqlLoginSecret)
+
+            Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $ServerName)
 
             # Runspace code starts here
             # $RemoteScriptBlock input parameters
@@ -372,7 +385,7 @@ function Get-ServerInfo() {
             $null = $Runspace.AddArgument($MonitorSqlConnection)
             $null = $Runspace.AddArgument($MonitorDatabaseName)
             $null = $Runspace.AddArgument($MonitorProfile)
-            $null = $Runspace.AddArgument($InstanceName)
+            $null = $Runspace.AddArgument($ServerName)
             $null = $Runspace.AddArgument($SqlAuthCredential)       # <== currently NULL; on the TODO list
             $null = $Runspace.AddArgument($ScriptsDataSet)
             $null = $Runspace.AddArgument($LogFilePath)

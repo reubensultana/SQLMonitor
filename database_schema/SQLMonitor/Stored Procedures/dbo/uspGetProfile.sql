@@ -1,6 +1,3 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID(N'[dbo].[uspGetProfile]') IS NOT NULL
 DROP PROCEDURE [dbo].[uspGetProfile]
 GO
@@ -35,8 +32,4 @@ BEGIN
     ORDER BY [IntervalMinutes], p.[ProfileName], p.[ExecutionOrder], p.[ScriptName];
     
 END
-GO
-
-
-USE [master]
 GO

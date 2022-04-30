@@ -1,10 +1,5 @@
-USE [SQLMonitor]
-GO
-
 IF OBJECT_ID('[Monitor].[ServerLogins]') IS NOT NULL
-BEGIN
-    DROP TABLE [Monitor].[ServerLogins];
-END
+DROP TABLE [Monitor].[ServerLogins];
 GO
 
 CREATE TABLE [Monitor].[ServerLogins](
@@ -31,7 +26,7 @@ CREATE TABLE [Monitor].[ServerLogins](
 	[SecurablesPermissions] [varchar](max) NOT NULL,
     [RecordStatus] [char] (1) NOT NULL,        -- record status - used to determine if the record is active or not
     [RecordCreated] [datetimeoffset] (7) NOT NULL   -- audit timestamp storing the date and time the record was created (is additional detail necessary?)
-) ON [TABLES] TEXTIMAGE_ON [TABLES]
+)
 GO
 
 
@@ -40,7 +35,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'[Monitor]
 ALTER TABLE [Monitor].[ServerLogins]
 ADD  CONSTRAINT [PK_ServerLogins] PRIMARY KEY CLUSTERED ([ServerLoginID] ASC)
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = ON, IGNORE_DUP_KEY = OFF, ONLINE = OFF, 
-    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100) ON [TABLES]
+    ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, FILLFACTOR = 100)
 GO
 
 
@@ -56,8 +51,4 @@ GO
 -- default constraint on RecordCreated = SYSDATETIMEOFFSET()
 ALTER TABLE [Monitor].[ServerLogins] ADD CONSTRAINT
 	DF_ServerLogins_RecordCreated DEFAULT SYSDATETIMEOFFSET() FOR RecordCreated
-GO
-
-
-USE [master]
 GO
