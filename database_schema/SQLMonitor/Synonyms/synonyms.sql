@@ -1,24 +1,5 @@
-/*
-DROP TABLE [Archive].[DatabaseBackupHistory]
-DROP TABLE [Archive].[DatabaseConfigurations]
-DROP TABLE [Archive].[DatabaseTables]
-DROP TABLE [Archive].[DatabaseUsers]
-DROP TABLE [Archive].[IndexUsageStats]
-DROP TABLE [Archive].[MissingIndexStats]
-DROP TABLE [Archive].[ServerAgentConfig]
-DROP TABLE [Archive].[ServerAgentJobs]
-DROP TABLE [Archive].[ServerAgentJobsHistory]
-DROP TABLE [Archive].[ServerConfigurations]
-DROP TABLE [Archive].[ServerDatabases]
-DROP TABLE [Archive].[ServerEndpoints]
-DROP TABLE [Archive].[ServerErrorLog]
-DROP TABLE [Archive].[ServerFreeSpace]
-DROP TABLE [Archive].[ServerInfo]
-DROP TABLE [Archive].[ServerLogins]
-DROP TABLE [Archive].[ServerServers]
-DROP TABLE [Archive].[ServerTriggers]
+USE [SQLMonitor]
 GO
-*/
 
 DROP SYNONYM IF EXISTS [Archive].[DatabaseBackupHistory]
 DROP SYNONYM IF EXISTS [Archive].[DatabaseConfigurations]

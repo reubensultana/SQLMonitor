@@ -4,7 +4,7 @@
 
 SQL Server monitoring tool based on PowerShell v3 and TSQL scripts only
 
-## The Longer Version
+## The (Slightly) Longer Version
 
 SqlMonitor is more of a monitoring solution. This allows DBAs to run preset scripts or TSQL code against a number of SQL Server instances, according to time-based rules defined by what I called "Profiles". The monitoring part allows DBAs to execute the scripts and store the results in a central location for reporting, and trend analysis, etc.
 

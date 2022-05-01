@@ -12,7 +12,6 @@ ORDER BY ReportID
 
 -- TRUNCATE TABLE [dbo].[Reports];
 SET IDENTITY_INSERT [dbo].[Reports] ON;
-GO
 INSERT INTO [dbo].[Reports] (
     ReportID, ReportName, ReportType, ExecutionOrder, PreExecuteScript, ExecuteScript, CreateChart, RecordStatus
     )
@@ -26,14 +25,9 @@ VALUES
     ,(7,'Database Growth Trend (SRVR01: All)','Custom Weekly',1,'','EXEC [Reporting].[uspListDatabaseGrowthTrend] @ServerName=''SRVR01'', @DatabaseName=''%'', @IncludeArchive = 1, @ArchiveMonths = 4, @IncludeSystem = 0;', 0, 'A')
     ,(8,'Database Growth Trend (SRVR02: All)','Custom Weekly',1,'','EXEC [Reporting].[uspListDatabaseGrowthTrend] @ServerName=''SRVR02'', @DatabaseName=''%'', @IncludeArchive = 1, @ArchiveMonths = 4, @IncludeSystem = 0;', 0, 'A')
     ,(9,'Free Space Trend (SRVR02: All)','Custom Weekly',1,'','EXEC [Reporting].[uspListServerFreeSpaceTrend] @ServerName=''SRVR01'', @DriveLetter = ''%'';', 0, 'A')
-    ,(10,'Database Growth Trend (SRVR03: All)','Custom Weekly',1,'','EXEC [Reporting].[uspListDatabaseGrowthTrend] @ServerName=''SRVR03'', @DatabaseName=''%'', @IncludeArchive = 1, @ArchiveMonths = 4, @IncludeSystem = 0;', 0, 'A')
-GO
-SET IDENTITY_INSERT [dbo].[Reports] OFF
-GO
+    ,(10,'Database Growth Trend (SRVR03: All)','Custom Weekly',1,'','EXEC [Reporting].[uspListDatabaseGrowthTrend] @ServerName=''SRVR03'', @DatabaseName=''%'', @IncludeArchive = 1, @ArchiveMonths = 4, @IncludeSystem = 0;', 0, 'A');
 
 -- START: sp_Blitz reports
-SET IDENTITY_INSERT [dbo].[Reports] ON;
-GO
 INSERT INTO [dbo].[Reports] (
     ReportID, ReportName, ReportType, ExecutionOrder, PreExecuteScript, ExecuteScript, CreateChart, RecordStatus
     )

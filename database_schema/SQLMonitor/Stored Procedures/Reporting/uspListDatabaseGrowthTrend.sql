@@ -111,11 +111,3 @@ BEGIN
     END
 END
 GO
-
-/*
-USE [SQLMonitor]
-GO
-CREATE NONCLUSTERED INDEX [<Name of Missing Index, sysname,>]
-    ON [Archive].[DatabaseConfigurations] ([ServerName],[DatabaseName])
-GO
-*/

@@ -1,7 +1,7 @@
 param(
     [Parameter(Position=0, Mandatory=$true)] [ValidateNotNullOrEmpty()] [Microsoft.SqlServer.Management.Smo.Server] $MonitorSqlConnection,
     [Parameter(Position=1, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorDatabaseName,
-    [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorStagingSchema,     # <-- What was my reasoning to crate a Staging schema??!
+    [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorTargetSchema,
     [Parameter(Position=3, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $RemoteSqlInstance,
     [Parameter(Position=4, Mandatory=$false)] [PSCredential] $RemoteSqlAuthCredential,
     [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [System.Data.DataTable] $ScriptsDataSet,
@@ -88,7 +88,7 @@ foreach ($Script in $ScriptsDataSet) {
 .\Execute-Remote.ps1 `
     -MonitorSqlConnection $MonitorSqlConnection `
     -MonitorDatabaseName $MonitorDatabaseName `
-    -MonitorStagingSchema $MonitorProfile `
+    -MonitorTargetSchema $MonitorProfile `
     -RemoteSqlInstance "localhost,14332" `
     -RemoteSqlAuthCredential $MonitorSqlAuthCredential `
     -ScriptsDataSet $ScriptsDataSet `
@@ -192,7 +192,7 @@ if ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Cou
 SELECT COALESCE(DATEDIFF(N, MAX([RecordCreated]), SYSDATETIMEOFFSET()), 600000) AS [MinutesElapsed] 
 FROM [{0}].[{1}] 
 WHERE [ServerName] = @ServerName 
-AND [RecordStatus] = 'A';" -f $MonitorStagingSchema, $TargetTableName
+AND [RecordStatus] = 'A';" -f $MonitorTargetSchema, $TargetTableName
                 # define the SQL command input parameters
                 $QueryParameters = @{
                     "ServerName" = $InstanceServerName;
@@ -248,13 +248,13 @@ AND [RecordStatus] = 'A';" -f $MonitorStagingSchema, $TargetTableName
                         # TODO: Convert this to a stored procedure
                         $SqlCmd = "
 IF EXISTS (SELECT 1 FROM [{0}].[{1}] WHERE [ServerName] = @ServerName AND [RecordStatus] = 'A') 
-    UPDATE [{2}].[{3}] SET [RecordStatus] = 'H' WHERE [ServerName] = @ServerName AND [RecordStatus] = 'A';" -f $MonitorStagingSchema, $TargetTableName, $MonitorStagingSchema, $TargetTableName
-                        Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Update the status for older data on [{1}].[{2}]" -f $RemoteSqlInstance, $MonitorStagingSchema, $TargetTableName)
+    UPDATE [{2}].[{3}] SET [RecordStatus] = 'H' WHERE [ServerName] = @ServerName AND [RecordStatus] = 'A';" -f $MonitorTargetSchema, $TargetTableName, $MonitorTargetSchema, $TargetTableName
+                        Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Update the status for older data on [{1}].[{2}]" -f $RemoteSqlInstance, $MonitorTargetSchema, $TargetTableName)
                         Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -CommandType Text -Query $SqlCmd -SqlParameters $QueryParameters -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
                         if ($ResultDataSet.Tables[0].Rows.Count -gt 0) {
                             # write data extracted from remote server to the central table - https://docs.dbatools.io/Write-DbaDbTableData
-                            Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Write data extracted from remote server to the central table [{1}].[{2}]" -f $RemoteSqlInstance, $MonitorStagingSchema, $TargetTableName)
-                            $ResultDataSet | Write-DbaDbTableData -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -Table $TargetTableName -Schema $MonitorStagingSchema -KeepNulls -EnableException # -ErrorAction Stop
+                            Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Write data extracted from remote server to the central table [{1}].[{2}]" -f $RemoteSqlInstance, $MonitorTargetSchema, $TargetTableName)
+                            $ResultDataSet | Write-DbaDbTableData -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -Table $TargetTableName -Schema $MonitorTargetSchema -KeepNulls -EnableException # -ErrorAction Stop
                             # NOTE: see documentation notes regarding performmance of Write-DbaDbTableData wen using the DataSet data type as the InputObject
                         }
                     }

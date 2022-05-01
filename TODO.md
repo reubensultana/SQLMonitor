@@ -7,7 +7,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 * [x] Modify functionality to use [DBA Tools](https://dbatools.io) module instead of writing my own;
 * [x] Split main code functionality to use PoSh Runspaces;
 * [x] Enhance logging, writing to text files in a specific folder;
-* [ ] Functionality to load log files to the database (?);
+* [ ] Functionality to load log files into the database (?);
 * [ ] Functionality to clear log files older than N days/weeks/months;
 * [x] Modify deployment scripts to avoid hard-coding the Database Name;
 * [ ] Check and install DBA Tools as part of the deployment (manual installation is always possible for servers not connected to the Internet);
@@ -30,7 +30,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
     * Run Script
 
 * [ ] Compile Posh functions as a SqlMonitor Module;
-* [ ] Deployment instructions: Add `Import-Module dbatools` to the `$Profile` of the account running this solution;
+* [x] Deployment instructions: Add `Import-Module dbatools` to the `$Profile` of the account running this solution;
 * [ ] Option to write collected information to CSV or Excel files (use `ImportExcel` module) instead of the SQLMonitor database;
 * [x] Securely store SQL authentication parameters for each server in the database;
 * [ ] Convert embedded TSQL code to stored procedures;
