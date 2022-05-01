@@ -295,7 +295,7 @@ foreach ($ScriptObj in ($FileList.Scripts | Sort-Object -Property ScriptNumber))
 
 if ($true -eq $UseSeperateArchiveDatabase) {
     Write-Warning "Archive objects have been created in a separate SqlMonitor Archive database. 
-Please create Synonyms using the supplied '\Synonyms\synonyms.sql' script to ensure that the SqlMonitor functionality remains intact."
+Please create Synonyms using the supplied '\Synonyms\synonyms.sql' script to ensure that the functionality remains intact."
 }
 
 # deallocate variables

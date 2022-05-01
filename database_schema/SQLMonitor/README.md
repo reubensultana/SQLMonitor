@@ -15,7 +15,10 @@ The project database schema, including files used for the initial deployment.
 5. Run the following to start the installation:  
 
     ``` powershell
-    .\initial_deployment.ps1 -MonitorSqlInstance "localhost,14330" -MonitorSqlAuthCredential $SqlCred -SqlMonitorDatabaseName "SqlMonitor"
+    .\initial_deployment.ps1 `
+        -MonitorSqlInstance "localhost,14330" `
+        -MonitorSqlAuthCredential $SqlCred `
+        -SqlMonitorDatabaseName "SqlMonitor"
     ```  
 
 6. This will fail with the following message:  
@@ -30,7 +33,7 @@ The project database schema, including files used for the initial deployment.
 
 The following GIF shows the process of installing SqlMonitor using a SQL Login to authenticate with the Instance.
 
-![/SqlMonitor-Install.gif "SqlMonitor Installation"](/SqlMonitor-Install.gif)
+![/SqlMonitor-Install.gif "SqlMonitor Installation"](/database_schema/SQLMonitor/SqlMonitor-Install.gif)
 
 You are now good to go!
 
@@ -43,7 +46,11 @@ The installation process is similar to the one described above.  In addition to 
 The installation can then be started using the following command:  
 
 ``` powershell
-.\initial_deployment.ps1 -MonitorSqlInstance "localhost,14330" -MonitorSqlAuthCredential $SqlCred -SqlMonitorDatabaseName "SqlMonitor" -SqlMonitorArchiveDatabaseName "SqlMonitorArchive"
+.\initial_deployment.ps1 `
+    -MonitorSqlInstance "localhost,14330" `
+    -MonitorSqlAuthCredential $SqlCred `
+    -SqlMonitorDatabaseName "SqlMonitor" `
+    -SqlMonitorArchiveDatabaseName "SqlMonitorArchive"
 ```
 
 The installer will proceed similarly to the above, however will create objects pertaining to the Archive database in the appropriate database.
@@ -52,7 +59,7 @@ On completion, the installer will show this warning message:
 
 ``` text
 Archive objects have been created in a separate SqlMonitor Archive database. 
-Please create Synonyms using the supplied '\Synonyms\synonyms.sql' script to ensure that the SqlMonitor functionality remains intact.
+Please create Synonyms using the supplied '\Synonyms\synonyms.sql' script to ensure that the functionality remains intact.
 ```
 
 The `\Synonyms\synonyms.sql` script is also included, however has the Archive database name "hard-coded" as `SqlMonitorArchive` - you will have to change that if you used a different database name.
