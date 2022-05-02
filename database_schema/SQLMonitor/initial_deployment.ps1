@@ -1,3 +1,54 @@
+<#
+.SYNOPSIS
+    The installer for the SqlMonitor database.
+
+.DESCRIPTION
+    This PowerShell script will install the SqlMonitor database using the scripts provided in the subdirectories.
+
+.PARAMETER MonitorSqlInstance
+    The SQL Server instance which will host the SqlMonitor database.
+
+.PARAMETER MonitorSqlAuthCredential
+    The Credential Object to use to connect to the SQL Server instance.
+
+.PARAMETER SqlMonitorDatabaseName
+    The name of the SqlMonitor database. Defaults to "SqlMonitor".
+
+.PARAMETER SqlMonitorArchiveDatabaseName
+    The name of the SqlMonitor Archive database. If this is omitted the Archive database will not be created and the objects will be created in the SqlMonitor database.
+
+.PARAMETER Version
+    Show the current version number.
+
+.EXAMPLE
+    [string] $LoginName = "SqlMonitorAccount";
+    [SecureString] $LoginSecret = ConvertTo-SecureString 'P@ssw0rd123!' -AsPlainText -Force
+    $SqlCredential = New-Object System.Management.Automation.PSCredential ($LoginName, $LoginSecret)
+
+    .\initial_deployment.ps1 `
+        -MonitorSqlInstance "localhost,14330" `
+        -MonitorSqlAuthCredential $SqlCredential `
+        -SqlMonitorDatabaseName "SqlMonitor"
+
+.EXAMPLE
+    [string] $LoginName = "SqlMonitorAccount";
+    [SecureString] $LoginSecret = ConvertTo-SecureString 'P@ssw0rd123!' -AsPlainText -Force
+    $SqlCredential = New-Object System.Management.Automation.PSCredential ($LoginName, $LoginSecret)
+
+    .\initial_deployment.ps1 `
+        -MonitorSqlInstance "localhost,14330" `
+        -MonitorSqlAuthCredential $SqlCredential `
+        -SqlMonitorDatabaseName "SqlMonitor" `
+        -SqlMonitorArchiveDatabaseName "SqlMonitorArchive"
+
+.EXAMPLE
+    .\initial_deployment.ps1 -Version
+    .\initial_deployment.ps1 -v
+    .\initial_deployment.ps1 -ver
+
+.LINK
+    https://github.com/reubensultana/SQLMonitor
+#>
 [CmdletBinding(DefaultParameterSetName = 'Deployment')]
 param(
     [Parameter(
@@ -32,22 +83,6 @@ param(
         [Alias("v","ver")]
         [switch] $Version
 )
-<#
-[String] $Username = "sa";
-[SecureString] $Password = ConvertTo-SecureString 'P@ssw0rd123!' -AsPlainText -Force
-$MyCredential = New-Object System.Management.Automation.PSCredential ($Username, $Password)
-
-NOTE:
-To see the password, you'll need to use the Password property on the object that GetNetworkCredential() returns.
-> $MyCredential.UserName
-> sa
-> $MyCredential.Password
-> System.Security.SecureString
-> $MyCredential.GetNetworkCredential().Password
-> P@ssw0rd123!
-The password that's returned should be the same password that you provided early to the PSCredential constructor.
-#>
-
 if ($true -eq $Version) {
     Write-Output "SqlMonitor Version 2.0.0"
     Write-Output $("© Reuben Sultana - {0}" -f $(Get-Date -Format "yyyy"))

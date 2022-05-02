@@ -1,11 +1,108 @@
+<#
+.SYNOPSIS
+    The core script used to execute TSQL code against remote SQL Server instances.
+
+.DESCRIPTION
+    Execute the TSQL code passed in the input parameters  against the remote SQL Server instance, returning the data set, and storing it in a central table.
+
+.PARAMETER MonitorSqlConnection
+    The Connection Object representing the SQL Server instance hosting the SqlMonitor database.
+
+.PARAMETER MonitorDatabaseName
+    The name of the SqlMonitor database. Defaults to "SqlMonitor".
+
+.PARAMETER MonitorTargetSchema
+    The name of the schema to use for the SqlMonitor table. Defaults to "Monitor".
+
+.PARAMETER RemoteSqlInstance
+    The remote SQL Server instance wheree the TSQL code will be executed.
+
+.PARAMETER RemoteSqlAuthCredential
+    The Credential Object to use to connect to the remote SQL Server instance.
+
+.PARAMETER ScriptsDataSet
+    A Data Set containing the TSQL scripts which will be executed against the remote SQL Server instance.
+
+.PARAMETER LogFilePath
+    The path to the log file to use for messages when executing the TSQL scripts against the remote SQL Server instances.
+
+.PARAMETER Version
+    Show the current version number.
+
+.EXAMPLE
+    .\Execute-Remote.ps1 `
+        -MonitorSqlConnection $MonitorSqlConnection `
+        -MonitorDatabaseName $MonitorDatabaseName `
+        -MonitorTargetSchema $MonitorProfile `
+        -RemoteSqlInstance "localhost,14332" `
+        -RemoteSqlAuthCredential $MonitorSqlAuthCredential `
+        -ScriptsDataSet $ScriptsDataSet `
+        -LogFilePath $LogFilePath `
+        -Verbose
+
+.EXAMPLE
+    .\Execute-Remote.ps1 -Version
+    .\Execute-Remote.ps1 -v
+    .\Execute-Remote.ps1 -ver
+
+.LINK
+    https://github.com/reubensultana/SQLMonitor
+#>
+[CmdletBinding(DefaultParameterSetName = 'RemoteExecute')]
 param(
-    [Parameter(Position=0, Mandatory=$true)] [ValidateNotNullOrEmpty()] [Microsoft.SqlServer.Management.Smo.Server] $MonitorSqlConnection,
-    [Parameter(Position=1, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorDatabaseName,
-    [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorTargetSchema,
-    [Parameter(Position=3, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $RemoteSqlInstance,
-    [Parameter(Position=4, Mandatory=$false)] [PSCredential] $RemoteSqlAuthCredential,
-    [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [System.Data.DataTable] $ScriptsDataSet,
-    [Parameter(Position=6, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $LogFilePath
+    [Parameter(
+            Position=0, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [Microsoft.SqlServer.Management.Smo.Server] $MonitorSqlConnection
+    ,
+    [Parameter(
+            Position=1, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [string] $MonitorDatabaseName
+    ,
+    [Parameter(
+            Position=2, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [string] $MonitorTargetSchema = "Monitor"
+        ,
+    [Parameter(
+            Position=3, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [string] $RemoteSqlInstance
+    ,
+    [Parameter(
+            Position=4, 
+            Mandatory=$false,
+            ParameterSetName = 'RemoteExecute')] 
+        [PSCredential] $RemoteSqlAuthCredential
+    ,
+    [Parameter(
+            Position=5, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [System.Data.DataTable] $ScriptsDataSet
+    ,
+    [Parameter(
+            Position=6, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [string] $LogFilePath
+    ,
+    [Parameter(
+            Mandatory=$false, 
+            ParameterSetName = 'Version')]
+        [Alias("v","ver")]
+        [switch] $Version
 )
 <#
 What's happening:
@@ -96,6 +193,11 @@ foreach ($Script in $ScriptsDataSet) {
     -Verbose
 
 #>
+if ($true -eq $Version) {
+    Write-Output "SqlMonitor Version 2.0.0"
+    Write-Output $("© Reuben Sultana - {0}" -f $(Get-Date -Format "yyyy"))
+    return
+}
 
 # region possible-overheads
 # check if dbatools is installed

@@ -63,3 +63,13 @@ Please create Synonyms using the supplied '\Synonyms\synonyms.sql' script to ens
 ```
 
 The `\Synonyms\synonyms.sql` script is also included, however has the Archive database name "hard-coded" as `SqlMonitorArchive` - you will have to change that if you used a different database name.
+
+&nbsp;
+
+## Other Considerations
+
+Thge following scripts should be modified so that the password used when creating the respective Server or Database objects (see scripts) is not the defrault one supplied with this solution.
+
+1. The script `\Security\encryption.sql` contains the password used to encrypt the CERTIFICATE object;
+
+2. The script `\Security\users.sql` creates the "SqlReports" login using a default password.

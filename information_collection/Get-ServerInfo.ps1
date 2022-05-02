@@ -18,20 +18,20 @@
     Since the SqlMonitor is not bound to these scripts, you can write your own code (test it, of course) and add it to the solution. The only other requirement is that you'd have to build
     the table structure/s which will be storing the data being collected. A guide to perform this task is (or will be) included in the final version of the solution.
 
-.PARAMETER $MonitorSqlInstance
+.PARAMETER MonitorSqlInstance
     The SQL Server instance hosting the SqlMonitor database.
 
-.PARAMETER $MonitorDatabaseName
+.PARAMETER MonitorDatabaseName
     The name of the SqlMonitor database.
 
-.PARAMETER $MonitorConnectTimeout
+.PARAMETER MonitorConnectTimeout
     Specifies the number of seconds when this cmdlet times out if it cannot successfully connect to an instance of the Database Engine. The timeout value must be an integer value between 
     0 and 65534. If 0 is specified, connection attempts do not time out.
 
-.PARAMETER $MonitorProfile
+.PARAMETER MonitorProfile
     The name of the Profile to be used. This corresponds to the name of the Schema which owns the tables used to store the data.
 
-.PARAMETER $MonitorProfileType
+.PARAMETER MonitorProfileType
     The Profile Type, used to determine which set of scripts will be run. Allowed values are:
     > Annual
     > Monthly
@@ -42,10 +42,10 @@
     > Manual
     The value is case-sensitive, because it is used to determine which scripts will be run, and I want to always run.
 
-.PARAMETER $QueryTimeout
+.PARAMETER QueryTimeout
     Specifies the number of seconds before the queries time out. If a timeout value is not specified, the queries do not time out. The timeout must be an integer value between 1 and 65535.
 
-.PARAMETER $Version
+.PARAMETER Version
     Show the current version number.
 
 .EXAMPLE
