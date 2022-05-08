@@ -43,7 +43,9 @@ BEGIN
         ,[RecordStatus]     = i.[RecordStatus]
         --,[RecordCreated]    = i.[RecordCreated]
     FROM inserted i
-        INNER JOIN [dbo].[MonitoredServers] ms ON ms.[ServerName] = i.[ServerName];
+        INNER JOIN [dbo].[MonitoredServers] ms ON ms.[ServerName] = i.[ServerName] 
+            AND ms.[ServerIpAddress] = i.[ServerIpAddress] 
+            AND ms.[SqlTcpPort] = i.[SqlTcpPort];
 END   
 ELSE
 -- inserts only

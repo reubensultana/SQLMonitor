@@ -21,6 +21,9 @@
 .PARAMETER MonitorSqlInstance
     The SQL Server instance hosting the SqlMonitor database.
 
+.PARAMETER MonitorSqlAuthCredential
+    The SQL Login credential object used to connect to the SqlMonitor database.
+
 .PARAMETER MonitorDatabaseName
     The name of the SqlMonitor database.
 
@@ -49,9 +52,22 @@
     Show the current version number.
 
 .EXAMPLE
-    Run the Daily Profile for all Active SQL Server instances
-        .\Get-ServerInfo.ps1 
+    Run the Daily Profile for all Active SQL Server instances, using Windows Authentication to connect to the Monitor repository.
+        .\Get-ServerInfo.ps1 `
             -MonitorSqlInstance "localhost,14330" `
+            -MonitorDatabaseName "SQLMonitor" `
+            -MonitorConnectTimeout 30 `
+            -MonitorProfile "Monitor" `
+            -MonitorProfileType "Daily" `
+            -QueryTimeout 360
+
+.EXAMPLE
+    Run the Daily Profile for all Active SQL Server instances, using SQL Authentication to connect to the Monitor repository.
+        $MonitorSqlAuthCredential = Get-Credential -UserName "sa"
+    
+        .\Get-ServerInfo.ps1 `
+            -MonitorSqlInstance "localhost,14330" `
+            -MonitorSqlAuthCredential $MonitorSqlAuthCredential `
             -MonitorDatabaseName "SQLMonitor" `
             -MonitorConnectTimeout 30 `
             -MonitorProfile "Monitor" `
@@ -75,6 +91,12 @@ param(
             HelpMessage="Enter the SQLMonitor repository Instance name.")]
         [ValidateNotNullOrEmpty()]
         [string] $MonitorSqlInstance
+    ,
+    [Parameter(
+        Mandatory=$false,
+        ParameterSetName = 'Monitor',
+        HelpMessage="Enter the SQL Login credential objects used to connect to the SqlMonitor repository.")]
+    [PSCredential] $MonitorSqlAuthCredential
     ,
     [Parameter(
             Mandatory=$true, 
@@ -136,9 +158,6 @@ if ($(Get-InstalledModule -Name dbatools -ErrorAction SilentlyContinue).Name -ne
 # import modules - assuming that they must be installed as part of the project prerequisites
 if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbatools }
 
-# get script file location
-$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
-
 function Test-FilePath {
     param(
         [Parameter(Mandatory)] [string] $Path
@@ -150,25 +169,33 @@ function Test-FilePath {
     return $true
 }
 
-# check for existence of external files used by this script
-if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\functions\Write-Log.ps1")) { return }
-if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\functions\Test-NetworkConnection.ps1")) { return }
-if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\functions\Execute-Remote.ps1")) { return }
+# get script file location
+$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
 
-# import functions
-. "$($CurrentPath)\functions\Write-Log.ps1"
-. "$($CurrentPath)\functions\Test-NetworkConnection.ps1"
+[string] $LoggingFunctionScript = "$($CurrentPath)\functions\Write-Log.ps1"
+[string] $TestNetConnFunctionScript = "$($CurrentPath)\functions\Test-NetworkConnection.ps1"
+[string] $RemoteScriptBlockScript = "$($CurrentPath)\functions\Execute-Remote.ps1"
+
+# check for existence of external files used by this script
+if ($false -eq $(Test-FilePath -Path $LoggingFunctionScript)) { return }
+if ($false -eq $(Test-FilePath -Path $TestNetConnFunctionScript)) { return }
+if ($false -eq $(Test-FilePath -Path $RemoteScriptBlockScript)) { return }
+
+# import function/s
+. $LoggingFunctionScript
+. $TestNetConnFunctionScript
 
 # --------------------------------------------------------------------------------
 function Get-ServerInfo() {
     [CmdletBinding()]  
     param(  
-        [Parameter(Position=1, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorSqlInstance,
-        [Parameter(Position=2, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorDatabaseName,
-        [Parameter(Position=3, Mandatory=$true)] [ValidateNotNull()] [int] $MonitorConnectTimeout,
-        [Parameter(Position=4, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfile,
-        [Parameter(Position=5, Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfileType,
-        [Parameter(Position=6, Mandatory=$true)] [ValidateNotNull()] [int] $QueryTimeout
+        [Parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorSqlInstance,
+        [Parameter(Mandatory=$false)] [PSCredential] $MonitorSqlAuthCredential,
+        [Parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorDatabaseName,
+        [Parameter(Mandatory=$true)] [ValidateNotNull()] [int] $MonitorConnectTimeout,
+        [Parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfile,
+        [Parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [string] $MonitorProfileType,
+        [Parameter(Mandatory=$true)] [ValidateNotNull()] [int] $QueryTimeout
     )
 
     # --------------------------------------------------------------------------------
@@ -186,7 +213,7 @@ function Get-ServerInfo() {
     
     # --------------------------------------------------------------------------------
     # variables used for logging
-    [string] $LogFolder = "{0}\LOG" -f $(Get-Location).Path
+    [string] $LogFolder = "{0}\LOG" -f $CurrentPath
     [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyyyMMddHHmmssfff')
     [string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
     # check and create logging subfolder/s
@@ -214,15 +241,15 @@ function Get-ServerInfo() {
     # start here
     Write-Log -LogFilePath $LogFilePath -LogEntry "=============================="
     Write-Log -LogFilePath $LogFilePath -LogEntry "Starting function: Get-ServerInfo"
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Server Name:       " -f $MonitorSqlInstance
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Database Name:     " -f $MonitorDatabaseName
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Connect Timeout:   " -f $MonitorConnectTimeout
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Profile Name:      " -f $MonitorProfile
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Profile Type:      " -f $MonitorProfileType
-    Write-Log -LogFilePath $LogFilePath -LogEntry "Query Timeout:     " -f $QueryTimeout
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Server Name:       {0}" -f $MonitorSqlInstance)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Database Name:     {0}" -f $MonitorDatabaseName)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Connect Timeout:   {0}" -f $MonitorConnectTimeout)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Profile Name:      {0}" -f $MonitorProfile)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Profile Type:      {0}" -f $MonitorProfileType)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("Query Timeout:     {0}" -f $QueryTimeout)
     Write-Log -LogFilePath $LogFilePath -LogEntry "=============================="
-    Write-Log -LogFilePath $LogFilePath -LogEntry ""
-    Write-Log -LogFilePath $LogFilePath -LogEntry ""
+    Write-Log -LogFilePath $LogFilePath -LogEntry " "
+    Write-Log -LogFilePath $LogFilePath -LogEntry " "
 
     # --------------------------------------------------------------------------------
     # create the MONITOR connection object - https://docs.dbatools.io/Connect-DbaInstance
@@ -230,13 +257,18 @@ function Get-ServerInfo() {
     $MonitorSqlConnection = New-Object Microsoft.SqlServer.Management.Smo.Server
     # $MonitorSqlConnection = New-Object Microsoft.Data.SqlClient.SQLConnection
     # use Windows Authentication
-    if ($null -eq $MonitorSqlAuthCredential) { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName }
+    if ($null -eq $MonitorSqlAuthCredential) { 
+        Write-Log -LogFilePath $LogFilePath -LogEntry "Using Windows Authentication"
+        $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName }
     # use SQL Authentication (NOTE: Username and Password sent in clear text - this is by design)
-    else { $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential }
+    else { 
+        Write-Log -LogFilePath $LogFilePath -LogEntry "Using SQL Authentication"
+        $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential }
     # TODO: Disconnect-DbaInstance
 
     # --------------------------------------------------------------------------------
     # get profile (incl, script names and scripts) from MONITOR database - http://docs.dbatools.io/Invoke-DbaQuery
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Getting Profile details"
     $SqlCmd = "dbo.uspGetProfile"
     # define the SQL command input parameters
     $QueryParameters = @{
@@ -254,6 +286,7 @@ function Get-ServerInfo() {
     # verify that the scripts dataset is valid - we're going to pass this to the Runspace code
     # doing this here to avoid overheads related to reading TSQL content from file for every SQL Server instance
     # also prevents possible file locking issuesand delays due to concurrent file access
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Getting list of Scripts"
     foreach ($Script in $ScriptsDataSet) {
         $ScriptPath = $ScriptRoot + $Script.ScriptName + ".sql"
         $ScriptName = $Script.ScriptName
@@ -288,6 +321,7 @@ function Get-ServerInfo() {
     
     # --------------------------------------------------------------------------------
     # get list of active servers from MONITOR database - http://docs.dbatools.io/Invoke-DbaQuery
+    Write-Log -LogFilePath $LogFilePath -LogEntry "Getting the list of Monitored Servers"
     $SqlCmd = "dbo.uspGetServers"
     # https://docs.microsoft.com/en-us/dotnet/api/system.data.datatable
     $InstancesDataSet = New-Object System.Data.DataTable
@@ -330,7 +364,7 @@ function Get-ServerInfo() {
             Write-Log -LogFilePath $LogFilePath -LogEntry $("The server {0} does not have a valid TCP Port number." -f $ServerName)
         }
     }
-    $AvailableInstancesDataSet = $InstancesDataSet | Where-Object -Property isAlive -eq 1 | Select-Object -Property ServerName, SqlTcpPort, SqlLogin, SqlLoginSecret
+    $AvailableInstancesDataSet = $InstancesDataSet | Where-Object -Property isAlive -eq 1 | Select-Object -Property ServerName, SqlTcpPort, SqlLoginName, SqlLoginSecret
     # check again...
     if ($AvailableInstancesDataSet.Count -eq 0) {
         Write-Log -LogFilePath $LogFilePath -LogEntry "No valid SQL Server instances were provided."
@@ -339,13 +373,13 @@ function Get-ServerInfo() {
 
     # --------------------------------------------------------------------------------
     #region remote script - this is the workhorse
-    $RemoteScriptBlock = { Get-Content "$($CurrentPath)\functions\Execute-Remote.ps1" -Raw }
+    $RemoteScriptBlock = Get-Content $RemoteScriptBlockScript -Raw
     #endregion
 
     #region set up Runspace Pool
     [int] $MaxRunningJobs = $($env:NUMBER_OF_PROCESSORS + 1) # number of Logical CPUs
     $DefaultRunspace = [System.Management.Automation.Runspaces.Runspace]::DefaultRunspace
-    $RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,$MaxRunningJobs)
+    $RunspacePool = [runspacefactory]::CreateRunspacePool(1,$MaxRunningJobs)
     $RunspacePool.ApartmentState = "MTA" # avalable values: MTA (multithreaded), STA (single-threaded) 
     $RunspacePool.Open()
     $Runspaces = @()
@@ -356,55 +390,65 @@ function Get-ServerInfo() {
 
     # start jobs on all servers
     if ( ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Count -gt 0 ) -and ($AvailableInstancesDataSet.Count -gt 0) ) {
-        foreach ($InstanceName in $AvailableInstancesDataSet) {
-            $ServerName = $("{0},{1}" -f $InstanceName.ServerName, $InstanceName.SqlTcpPort)
-            [String] $SqlLogin = $InstanceName.SqlLogin
-            [SecureString] $SqlLoginSecret = ConvertTo-SecureString $($InstanceName.SqlLoginSecret) -AsPlainText -Force
-            $SqlAuthCredential = New-Object System.Management.Automation.PSCredential ($SqlLogin, $SqlLoginSecret)
+        foreach ($MonitoredInstance in $AvailableInstancesDataSet) {
+            try {
+                $RemoteServerName = $("{0},{1}" -f $MonitoredInstance.ServerName, $MonitoredInstance.SqlTcpPort)
+                [String] $SqlLoginName = $MonitoredInstance.SqlLoginName
+                [SecureString] $SqlLoginSecret = ConvertTo-SecureString $($MonitoredInstance.SqlLoginSecret) -AsPlainText -Force
+                $SqlAuthCredential = New-Object System.Management.Automation.PSCredential ($SqlLoginName, $SqlLoginSecret)
 
-            Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $ServerName)
+                Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $RemoteServerName)
+<#
+                # this works, however it doesn't scale (at all) so we want to be using the Runspace
+                .\functions\Execute-Remote.ps1 `
+                    -MonitorSqlConnection $MonitorSqlConnection `
+                    -MonitorDatabaseName $MonitorDatabaseName `
+                    -MonitorTargetSchema $MonitorProfile `
+                    -RemoteSqlInstance $RemoteServerName `
+                    -RemoteSqlAuthCredential $SqlAuthCredential `
+                    -ScriptsDataSet $ScriptsDataSet `
+                    -LoggingFunctionScript $LoggingFunctionScript `
+                    -LogFilePath $LogFilePath
+#>
+                # Runspace code starts here
+                $ConcurrentQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
+                $Runspace = [PowerShell]::Create()
+                # add remote script code
+                $null = $Runspace.AddScript($RemoteScriptBlock)
+                # add parameters, in the order they are defined in the script
+                $null = $Runspace.AddArgument($MonitorSqlConnection)
+                $null = $Runspace.AddArgument($MonitorDatabaseName)
+                $null = $Runspace.AddArgument($MonitorProfile)
+                $null = $Runspace.AddArgument($RemoteServerName)
+                $null = $Runspace.AddArgument($SqlAuthCredential)
+                $null = $Runspace.AddArgument($ScriptsDataSet)
+                $null = $Runspace.AddArgument($LoggingFunctionScript)
+                $null = $Runspace.AddArgument($LogFilePath)
+                $Runspace.RunspacePool = $RunspacePool
+                $Runspaces += [PSCustomObject]@{ Pipe = $Runspace; Status = $Runspace.BeginInvoke() }
+                
+                # While streaming ...
+                while ($Runspaces.Status.IsCompleted -notcontains $true) {
+                    $item = $null
+                    if ($ConcurrentQueue.TryDequeue([ref]$item)) { "$item" }
+                }
+                # Drain the stream as the Runspace is closed, just to be safe
+                if ($ConcurrentQueue.IsEmpty -ne $true) {
+                    $item = $null
+                    while ($ConcurrentQueue.TryDequeue([ref]$item)) { "$item" }
+                }
+                foreach ($Runspace in $Runspaces) {
+                    [void]$Runspace.Pipe.EndInvoke($Runspace.Status) # EndInvoke method retrieves the results of the asynchronous calls
+                    $Runspace.Pipe.Dispose()
+                }
 
-            # Runspace code starts here
-            # $RemoteScriptBlock input parameters
-            <#
-            0. $MonitorSqlConnection = $MonitorSqlConnection
-            1. $MonitorDatabaseName = $MonitorDatabaseName
-            2. $MonitorProfile
-            3. $InstanceName
-            4. $InstanceCredentials
-            5. $ScriptsDataSet
-            6. $LogFilePath
-            #>
-
-
-            $ConcurrentQueue = New-Object System.Collections.Concurrent.ConcurrentQueue[string]
-            $Runspace = [PowerShell]::Create()
-            # add remote script code
-            $null = $Runspace.AddScript($RemoteScriptBlock)
-            # add parameters, in the order they are defined in the script
-            $null = $Runspace.AddArgument($MonitorSqlConnection)
-            $null = $Runspace.AddArgument($MonitorDatabaseName)
-            $null = $Runspace.AddArgument($MonitorProfile)
-            $null = $Runspace.AddArgument($ServerName)
-            $null = $Runspace.AddArgument($SqlAuthCredential)       # <== currently NULL; on the TODO list
-            $null = $Runspace.AddArgument($ScriptsDataSet)
-            $null = $Runspace.AddArgument($LogFilePath)
-            $Runspace.RunspacePool = $RunspacePool
-            $Runspaces += [PSCustomObject]@{ Pipe = $Runspace; Status = $Runspace.BeginInvoke() }
-            
-            # While streaming ...
-            while ($Runspaces.Status.IsCompleted -notcontains $true) {
-                $item = $null
-                if ($ConcurrentQueue.TryDequeue([ref]$item)) { "$item" }
             }
-            # Drain the stream as the Runspace is closed, just to be safe
-            if ($ConcurrentQueue.IsEmpty -ne $true) {
-                $item = $null
-                while ($ConcurrentQueue.TryDequeue([ref]$item)) { "$item" }
+            catch {
+                $ErrorMessage = $($_.Exception.Message)
+                Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : failed with error ""{1}""" -f $RemoteServerName, $ErrorMessage)
             }
-            foreach ($Runspace in $Runspaces) {
-                [void]$Runspace.Pipe.EndInvoke($Runspace.Status) # EndInvoke method retrieves the results of the asynchronous calls
-                $Runspace.Pipe.Dispose()
+            finally {
+                # clean up
             }
         }
     }
@@ -430,7 +474,23 @@ function Get-ServerInfo() {
 
 # run this only if the parameters have been passed to the script
 # interface implemented to be called from Windows Task Scheduler or similar applications
-if (($ServerInstance -ne '') -and ($Database -ne '') -and ($ProfileName -ne '') -and ($ProfileType -ne '')) {
-    Get-ServerInfo -ServerInstance $ServerInstance -Database $Database -ProfileName $ProfileName -ProfileType $ProfileType -QueryTimeout $QueryTimeout
+if ($null -eq $MonitorSqlAuthCredential) { 
+    Get-ServerInfo `
+        -MonitorSqlInstance $MonitorSqlInstance `
+        -MonitorDatabaseName $MonitorDatabaseName `
+        -MonitorConnectTimeout $MonitorConnectTimeout `
+        -MonitorProfile $MonitorProfile `
+        -MonitorProfileType $MonitorProfileType `
+        -QueryTimeout $QueryTimeout
 }
-# otherwise, do nothing
+# use SQL Authentication (NOTE: Username and Password sent in clear text - this is by design)
+else { 
+    Get-ServerInfo `
+        -MonitorSqlInstance $MonitorSqlInstance `
+        -MonitorSqlAuthCredential $MonitorSqlAuthCredential `
+        -MonitorDatabaseName $MonitorDatabaseName `
+        -MonitorConnectTimeout $MonitorConnectTimeout `
+        -MonitorProfile $MonitorProfile `
+        -MonitorProfileType $MonitorProfileType `
+        -QueryTimeout $QueryTimeout
+}

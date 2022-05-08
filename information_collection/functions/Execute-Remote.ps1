@@ -23,11 +23,27 @@
 .PARAMETER ScriptsDataSet
     A Data Set containing the TSQL scripts which will be executed against the remote SQL Server instance.
 
+.PARAMETER LoggingFunctionScript
+    The path to the logging function script.
+
 .PARAMETER LogFilePath
     The path to the log file to use for messages when executing the TSQL scripts against the remote SQL Server instances.
 
 .PARAMETER Version
     Show the current version number.
+
+.NOTES
+    What's happening:
+    ------------------------------
+    loop through list of scripts
+        check script last execution - get MAX date value from respective table name
+        compare script interval between runs (frequency) with script last exection date
+        execute the PreExecute script (if any)
+        execute the remote script storing data in memory
+        mark all currently active records as historical
+        copy remote execution results from memory to the database
+    iterate
+    clean up
 
 .EXAMPLE
     .\Execute-Remote.ps1 `
@@ -44,6 +60,83 @@
     .\Execute-Remote.ps1 -Version
     .\Execute-Remote.ps1 -v
     .\Execute-Remote.ps1 -ver
+
+.EXAMPLE
+    # This is a full example of how to use the Execute-Remote.ps1 script.
+    # --------------------------------------------------------------------------------
+    $MonitorProfile = "Monitor";
+    $MonitorProfileType = "Monthly"
+
+    $MonitorSqlInstance = "localhost,14330"
+    $MonitorDatabaseName = "SqlMonitor"
+    $MonitorConnectTimeout = 30
+    $MonitorSqlAuthCredential = Get-Credential -UserName "SqlMonitor"
+
+    $CurrentPath = $(Get-Location).Path
+
+    [string] $LoggingFunctionScript = "$($CurrentPath)\functions\Write-Log.ps1"
+
+    [string] $ApplicationName = "SqlMonitor"
+    [string] $HostName = [System.NET.DNS]::GetHostByName($null).HostName
+
+    [string] $LogFolder = "{0}\LOG" -f $CurrentPath
+    [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyMMddHHmmssfff')
+    [string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
+    # check and create logging subfolder/s
+    if ($false -eq $(Test-Path -Path $LogFolder -PathType Container -ErrorAction SilentlyContinue)) {
+        $null = New-Item -Path $LogFolder -ItemType Directory -Force -ErrorAction SilentlyContinue
+    }
+
+    [string] $ScriptRoot = "{0}\scripts\" -f $CurrentPath
+
+    $MonitorSqlConnection = New-Object Microsoft.SqlServer.Management.Smo.Server
+    $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential
+
+    $SqlCmd = "dbo.uspGetProfile"
+    $QueryParameters = @{
+        "ProfileName" = $MonitorProfile;
+        "ProfileType" = $MonitorProfileType;
+    };
+    $ScriptsDataSet = New-Object System.Data.DataTable
+    $ScriptsDataSet = Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -CommandType StoredProcedure -Query $SqlCmd -SqlParameters $QueryParameters -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
+
+    foreach ($Script in $ScriptsDataSet) {
+        $ScriptPath = $ScriptRoot + $Script.ScriptName + ".sql"
+        $ScriptName = $Script.ScriptName
+        # the script that should be executed, retrieved from the database
+        $ExecuteScript = $Script.ExecuteScript
+        # if the script is not stored in the database, load it from the file
+        if ([string]::IsNullOrEmpty($ExecuteScript)) {
+            # check that the script file exists
+            if (Test-Path $ScriptPath -PathType Leaf) {
+                # read the TSQL code from the file 
+                $ExecuteScript = Get-Content -Path $ScriptPath -Raw
+                # update the original value in memory with the file contents
+                $Script.ExecuteScript = $ExecuteScript
+            }
+            else {
+                # logging only; further checks below
+                Write-Log -LogFilePath $LogFilePath -LogEntry $("The script file {0} does not exist." -f $ScriptName)
+                $Script.ExecuteScript = ""          # avoids checking for $null below
+            }
+        }
+        # if at this stage the $ExecuteScript variable is still empty, then exit the loop and stop the process
+        if ([string]::IsNullOrEmpty($ExecuteScript)) { 
+            Write-Log -LogFilePath $LogFilePath -LogEntry $("The code for the {0} script could not be located." -f $Script.ScriptName)
+            $Script.ExecuteScript = ""          # avoids checking for $null below
+        }
+    }
+
+    $ScriptRoot\Execute-Remote.ps1 `
+        -MonitorSqlConnection $MonitorSqlConnection `
+        -MonitorDatabaseName $MonitorDatabaseName `
+        -MonitorTargetSchema $MonitorProfile `
+        -RemoteSqlInstance "localhost,14332" `
+        -RemoteSqlAuthCredential $MonitorSqlAuthCredential `
+        -ScriptsDataSet $ScriptsDataSet `
+        -LoggingFunctionScript $LoggingFunctionScript `
+        -LogFilePath $LogFilePath `
+        -Verbose
 
 .LINK
     https://github.com/reubensultana/SQLMonitor
@@ -92,7 +185,14 @@ param(
         [System.Data.DataTable] $ScriptsDataSet
     ,
     [Parameter(
-            Position=6, 
+            Position=7, 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
+        [ValidateNotNullOrEmpty()] 
+        [string] $LoggingFunctionScript
+    ,
+    [Parameter(
+            Position=8, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
@@ -104,95 +204,7 @@ param(
         [Alias("v","ver")]
         [switch] $Version
 )
-<#
-What's happening:
-------------------------------
-loop through list of scripts
-    check script last execution - get MAX date value from respective table name
-    compare script interval between runs (frequency) with script last exection date
-    execute the PreExecute script (if any)
-    execute the remote script storing data in memory
-    mark all currently active records as historical
-    copy remote execution results from memory to the database
-iterate
-clean up
-#>
 
-<#
-Testing this script
-------------------------------
-$MonitorProfile = "Monitor";
-$MonitorProfileType = "Monthly"
-
-$MonitorSqlInstance = "localhost,14330"
-$MonitorDatabaseName = "SqlMonitor"
-$MonitorConnectTimeout = 30
-$MonitorSqlAuthCredential = Get-Credential -UserName "sa"
-
-$CurrentPath = "D:\Development\GitHub\reubensultana\SQLMonitor\information_collection"
-
-[string] $ApplicationName = "SqlMonitor"
-[string] $HostName = [System.NET.DNS]::GetHostByName($null).HostName
-
-[string] $LogFolder = "{0}\LOG" -f "D:\TEMP"
-[string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyMMddHHmmssfff')
-[string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
-# check and create logging subfolder/s
-if ($false -eq $(Test-Path -Path $LogFolder -PathType Container -ErrorAction SilentlyContinue)) {
-    $null = New-Item -Path $LogFolder -ItemType Directory -Force -ErrorAction SilentlyContinue
-}
-
-[string] $ScriptRoot = "{0}\scripts\" -f $CurrentPath
-
-$MonitorSqlConnection = New-Object Microsoft.SqlServer.Management.Smo.Server
-$MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential
-
-$SqlCmd = "dbo.uspGetProfile"
-$QueryParameters = @{
-    "ProfileName" = $MonitorProfile;
-    "ProfileType" = $MonitorProfileType;
-};
-$ScriptsDataSet = New-Object System.Data.DataTable
-$ScriptsDataSet = Invoke-DbaQuery -SqlInstance $MonitorSqlConnection -Database $MonitorDatabaseName -CommandType StoredProcedure -Query $SqlCmd -SqlParameters $QueryParameters -QueryTimeout $QueryTimeout -As DataTable -EnableException -ErrorAction Stop
-
-foreach ($Script in $ScriptsDataSet) {
-    $ScriptPath = $ScriptRoot + $Script.ScriptName + ".sql"
-    $ScriptName = $Script.ScriptName
-    # the script that should be executed, retrieved from the database
-    $ExecuteScript = $Script.ExecuteScript
-    # if the script is not stored in the database, load it from the file
-    if ([string]::IsNullOrEmpty($ExecuteScript)) {
-        # check that the script file exists
-        if (Test-Path $ScriptPath -PathType Leaf) {
-            # read the TSQL code from the file 
-            $ExecuteScript = Get-Content -Path $ScriptPath -Raw
-            # update the original value in memory with the file contents
-            $Script.ExecuteScript = $ExecuteScript
-        }
-        else {
-            # logging only; further checks below
-            Write-Log -LogFilePath $LogFilePath -LogEntry $("The script file {0} does not exist." -f $ScriptName)
-            $Script.ExecuteScript = ""          # avoids checking for $null below
-        }
-    }
-    # if at this stage the $ExecuteScript variable is still empty, then exit the loop and stop the process
-    if ([string]::IsNullOrEmpty($ExecuteScript)) { 
-        Write-Log -LogFilePath $LogFilePath -LogEntry $("The code for the {0} script could not be located." -f $Script.ScriptName)
-        $Script.ExecuteScript = ""          # avoids checking for $null below
-    }
-}
-
-.\Execute-Remote.ps1 `
-    -MonitorSqlConnection $MonitorSqlConnection `
-    -MonitorDatabaseName $MonitorDatabaseName `
-    -MonitorTargetSchema $MonitorProfile `
-    -RemoteSqlInstance "localhost,14332" `
-    -RemoteSqlAuthCredential $MonitorSqlAuthCredential `
-    -ScriptsDataSet $ScriptsDataSet `
-    -LogFilePath $LogFilePath `
-    -Verbose
-
-#>
 if ($true -eq $Version) {
     Write-Output "SqlMonitor Version 2.0.0"
     Write-Output $("© Reuben Sultana - {0}" -f $(Get-Date -Format "yyyy"))
@@ -210,9 +222,6 @@ if ($(Get-InstalledModule -Name dbatools -ErrorAction SilentlyContinue).Name -ne
 if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbatools }
 # endregion possible-overheads
 
-# get script file location
-$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
-
 function Test-FilePath {
     param(
         [Parameter(Mandatory)] [string] $Path
@@ -224,11 +233,17 @@ function Test-FilePath {
     return $true
 }
 
-# check for existence of external files used by this script
-if ($false -eq $(Test-FilePath -Path "$($CurrentPath)\Write-Log.ps1")) { return }
+<#
+NOTE: The following has been removed as "$myInvocation.MyCommand.Definition" returns the entire Runspace Remote Script block
+# get script file location
+$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
+#>
 
-# import functions
-. "$($CurrentPath)\Write-Log.ps1"
+# check for existence of external files used by this script
+if ($false -eq $(Test-FilePath -Path $LoggingFunctionScript)) { return }
+
+# import function/s
+. $LoggingFunctionScript
 
 # --------------------------------------------------------------------------------
 # [string] $ApplicationName = "SqlMonitor"
@@ -253,7 +268,7 @@ $Err = $null
 # --------------------------------------------------------------------------------
 # check if any scripts (even though we checked in the parent/calling function)
 if ( $($ScriptsDataSet | Where-Object -Property ExecuteScript -ne -Value "").Count -gt 0 ) {
-    Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Start proessing" -f $RemoteSqlInstance)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Start processing" -f $RemoteSqlInstance)
 
     # create the REMOTE connection object - https://docs.dbatools.io/Connect-DbaInstance
     $RemoteSqlConnection = New-Object Microsoft.SqlServer.Management.Smo.Server
@@ -393,7 +408,7 @@ IF EXISTS (SELECT 1 FROM [{0}].[{1}] WHERE [ServerName] = @ServerName AND [Recor
             # Write-Host "Caught an exception:" -ForegroundColor Red
             # Write-Host "Exception type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
             # Write-Host "Exception message: $($_.Exception.Message)" -ForegroundColor Red
-            # Write-Host "Error: " $_.Exception -ForegroundColor Red   
+            # Write-Host "Error: " $_.Exception -ForegroundColor Red
             $Err = $_
             $Success = 0
             $ErrorMessage = $($_.Exception.Message)
@@ -404,10 +419,10 @@ IF EXISTS (SELECT 1 FROM [{0}].[{1}] WHERE [ServerName] = @ServerName AND [Recor
             # clean up
         }
     } # end foreach
-    Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : Completed" -f $RemoteSqlInstance)
+    Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : All scripts processed. Review output for any errors." -f $RemoteSqlInstance)
     # free up memory
     # https://docs.dbatools.io/Disconnect-DbaInstance
-    # Disconnect-DbaInstance -SqlInstance $RemoteSqlInstance
+    Disconnect-DbaInstance -SqlInstance $RemoteSqlInstance
 } # end check
 
 # return

@@ -15,7 +15,7 @@ function Write-Log {
         Tags: Logging
         Author: Reuben Sultana (@ReubenSultana), sqlserverdiaries.com
         Website: https://sqlserverdiaries.com
-        Copyright: (c) 2021 by Reuben Sultana, licensed under MIT
+        Copyright: (c) 2022 by Reuben Sultana, licensed under MIT
         License: MIT https://opensource.org/licenses/MIT
     .LINK
         

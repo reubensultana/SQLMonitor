@@ -47,7 +47,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 *This deserves it's own section.*
 
 * [ ] Write a better GitHub landing page;
-* [ ] Write better deployment instructions, possibly including a GIF file of the deployment process;
+* [x] Write better deployment instructions, possibly including a GIF file of the deployment process;
 * [ ] Write documentation for this project;
 * [ ] Provide inline documentation (i.e. within the Project folder structure) as Markdown files;
 * [ ] Evaluate [Read the Docs](https://readthedocs.org/) - this might have to be it's own project;
