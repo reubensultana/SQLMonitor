@@ -18,7 +18,7 @@ function Write-Log {
         Copyright: (c) 2022 by Reuben Sultana, licensed under MIT
         License: MIT https://opensource.org/licenses/MIT
     .LINK
-        
+        https://github.com/reubensultana/SQLMonitor
     .EXAMPLE
         PS C:\> Write-Log -LogFilePath "C:\LOGS\MyLogFile.log" -LogEntry "Hello World"
         Will write the following to the file mentioned:

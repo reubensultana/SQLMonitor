@@ -99,7 +99,7 @@ if ($(Get-InstalledModule -Name dbatools -ErrorAction SilentlyContinue).Name -ne
 if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbatools }
 
 # get script file location
-$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
+$RootPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
 
 [boolean] $UseSeperateArchiveDatabase = $true
 if ([string]::IsNullOrEmpty($SqlMonitorArchiveDatabaseName)) {
@@ -311,7 +311,7 @@ $FileList.AddScript($SqlMonitorDatabaseName, "\Data\SystemParams.sql") > $null
 foreach ($ScriptObj in ($FileList.Scripts | Sort-Object -Property ScriptNumber)) {
     $ScriptFile = $ScriptObj.ScriptFile
     $TargetDatabase = $ScriptObj.DatabaseName
-    $ScriptExecPath = "$($CurrentPath)$($ScriptFile)"
+    $ScriptExecPath = "$($RootPath)$($ScriptFile)"
     if ($(Test-Path $ScriptExecPath -PathType Leaf)) {
         # [string] $SqlCmd = $(Get-Content -Path $ScriptExecPath -Raw)
         "{0} : Running script: '{1}' for the '{2}' database" -f $(Get-Date -Format "HH:mm:ss"), $ScriptFile, $TargetDatabase
@@ -335,7 +335,7 @@ Please create Synonyms using the supplied '\Synonyms\synonyms.sql' script to ens
 
 # deallocate variables
 $MasterDatabaseName = $null
-$CurrentPath = $null
+$RootPath = $null
 $FileList = $null
 $ScriptObj = $null
 $ScriptExecPath = $null

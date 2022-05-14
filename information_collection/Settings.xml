@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 <Settings>
+    <System>
+        <ApplicationName>SqlMonitor</ApplicationName>
+        <Author>Reuben Sultana</Author>
+        <VersionBuild>2.0.0</VersionBuild>
+        <ReleaseDate>2008-2022</ReleaseDate>
+    </System>
     <DatabaseConnection>
         <ServerInstance>SQLSRV01</ServerInstance>
         <Database>SQLMonitor</Database>

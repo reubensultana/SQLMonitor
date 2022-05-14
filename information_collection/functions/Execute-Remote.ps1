@@ -23,8 +23,8 @@
 .PARAMETER ScriptsDataSet
     A Data Set containing the TSQL scripts which will be executed against the remote SQL Server instance.
 
-.PARAMETER LoggingFunctionScript
-    The path to the logging function script.
+.PARAMETER RootPath
+    The path from where the main functionality is being executed.
 
 .PARAMETER LogFilePath
     The path to the log file to use for messages when executing the TSQL scripts against the remote SQL Server instances.
@@ -72,14 +72,14 @@
     $MonitorConnectTimeout = 30
     $MonitorSqlAuthCredential = Get-Credential -UserName "SqlMonitor"
 
-    $CurrentPath = $(Get-Location).Path
+    $RootPath = $(Get-Location).Path
 
-    [string] $LoggingFunctionScript = "$($CurrentPath)\functions\Write-Log.ps1"
+    [string] $LoggingFunctionScript = "$($RootPath)\functions\Write-Log.ps1"
 
     [string] $ApplicationName = "SqlMonitor"
     [string] $HostName = [System.NET.DNS]::GetHostByName($null).HostName
 
-    [string] $LogFolder = "{0}\LOG" -f $CurrentPath
+    [string] $LogFolder = "{0}\LOG" -f $RootPath
     [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyMMddHHmmssfff')
     [string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
     # check and create logging subfolder/s
@@ -87,7 +87,7 @@
         $null = New-Item -Path $LogFolder -ItemType Directory -Force -ErrorAction SilentlyContinue
     }
 
-    [string] $ScriptRoot = "{0}\scripts\" -f $CurrentPath
+    [string] $ScriptRoot = "{0}\scripts\" -f $RootPath
 
     $MonitorSqlConnection = New-Object Microsoft.SqlServer.Management.Smo.Server
     $MonitorSqlConnection = Connect-DbaInstance -SqlInstance $MonitorSqlInstance -Database $MonitorDatabaseName -ConnectTimeout $MonitorConnectTimeout -ClientName $HostName -SqlCredential $MonitorSqlAuthCredential
@@ -144,55 +144,46 @@
 [CmdletBinding(DefaultParameterSetName = 'RemoteExecute')]
 param(
     [Parameter(
-            Position=0, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [Microsoft.SqlServer.Management.Smo.Server] $MonitorSqlConnection
     ,
     [Parameter(
-            Position=1, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $MonitorDatabaseName
     ,
     [Parameter(
-            Position=2, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $MonitorTargetSchema = "Monitor"
         ,
     [Parameter(
-            Position=3, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $RemoteSqlInstance
     ,
     [Parameter(
-            Position=4, 
             Mandatory=$false,
             ParameterSetName = 'RemoteExecute')] 
         [PSCredential] $RemoteSqlAuthCredential
     ,
     [Parameter(
-            Position=5, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [System.Data.DataTable] $ScriptsDataSet
     ,
     [Parameter(
-            Position=7, 
-            Mandatory=$true,
-            ParameterSetName = 'RemoteExecute')] 
+            Mandatory=$true)] 
         [ValidateNotNullOrEmpty()] 
-        [string] $LoggingFunctionScript
+        [string] $RootPath
     ,
     [Parameter(
-            Position=8, 
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
@@ -204,10 +195,27 @@ param(
         [Alias("v","ver")]
         [switch] $Version
 )
+<#
+NOTE: The following has been removed as "$myInvocation.MyCommand.Definition" returns the entire Runspace Remote Script block
+# get script file location
+$RootPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
+#>
+[string] $TestFilePathScript = "$($RootPath)\functions\Test-FilePath.ps1"
+. $TestFilePathScript
 
+# get information from the config file
+[string] $SettingsFile = "$($RootPath)\Settings.xml"
+if ($true -eq $(Test-FilePath($SettingsFile))) {
+    [xml]$ConfigFile = Get-Content $SettingsFile
+
+    [string] $ApplicationName = $ConfigFile.Settings.System.ApplicationName
+    [string] $Author = $ConfigFile.Settings.System.Author
+    [string] $VersionBuild = $ConfigFile.Settings.System.VersionBuild
+    [string] $ReleaseDate = $ConfigFile.Settings.System.ReleaseDate
+}
 if ($true -eq $Version) {
-    Write-Output "SqlMonitor Version 2.0.0"
-    Write-Output $("© Reuben Sultana - {0}" -f $(Get-Date -Format "yyyy"))
+    Write-Output $("{0} Version {1}}" -f $ApplicationName, $VersionBuild)
+    Write-Output $("© {0} - {1}" -f $Author, $ReleaseDate)
     return
 }
 
@@ -222,25 +230,10 @@ if ($(Get-InstalledModule -Name dbatools -ErrorAction SilentlyContinue).Name -ne
 if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbatools }
 # endregion possible-overheads
 
-function Test-FilePath {
-    param(
-        [Parameter(Mandatory)] [string] $Path
-    )
-    if ( $false -eq $(Test-Path -Path $Path -PathType Leaf) ) { 
-        Write-Error $("The required file {0} does not exist." -f $FilePath)
-        return $false
-    }
-    return $true
-}
-
-<#
-NOTE: The following has been removed as "$myInvocation.MyCommand.Definition" returns the entire Runspace Remote Script block
-# get script file location
-$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
-#>
+[string] $LoggingFunctionScript = "$($RootPath)\functions\Write-Log.ps1"
 
 # check for existence of external files used by this script
-if ($false -eq $(Test-FilePath -Path $LoggingFunctionScript)) { return }
+if ($false -eq $(Test-FilePath -FilePath $LoggingFunctionScript)) { return }
 
 # import function/s
 . $LoggingFunctionScript

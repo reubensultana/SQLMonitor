@@ -80,6 +80,12 @@
         .\Get-ServerInfo.ps1 -v
         .\Get-ServerInfo.ps1 -ver
 
+.NOTES
+    Author: Reuben Sultana (@ReubenSultana), sqlserverdiaries.com
+    Website: https://sqlserverdiaries.com
+    Copyright: (c) 2022 by Reuben Sultana, licensed under MIT
+    License: MIT https://opensource.org/licenses/MIT
+
 .LINK
     https://github.com/reubensultana/SQLMonitor
 #>
@@ -142,10 +148,24 @@ param(
         [Alias("v","ver")]
         [switch] $Version
 )
+# get script file location
+$RootPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
+[string] $TestFilePathScript = "$($RootPath)\functions\Test-FilePath.ps1"
+. $TestFilePathScript
 
+# get information from the config file
+[string] $SettingsFile = "$($RootPath)\Settings.xml"
+if ($true -eq $(Test-FilePath($SettingsFile))) {
+    [xml]$ConfigFile = Get-Content $SettingsFile
+
+    [string] $ApplicationName = $ConfigFile.Settings.System.ApplicationName
+    [string] $Author = $ConfigFile.Settings.System.Author
+    [string] $VersionBuild = $ConfigFile.Settings.System.VersionBuild
+    [string] $ReleaseDate = $ConfigFile.Settings.System.ReleaseDate
+}
 if ($true -eq $Version) {
-    Write-Output "SqlMonitor Version 2.0.0"
-    Write-Output $("© Reuben Sultana - {0}" -f $(Get-Date -Format "yyyy"))
+    Write-Output $("{0} Version {1}}" -f $ApplicationName, $VersionBuild)
+    Write-Output $("© {0} - {1}" -f $Author, $ReleaseDate)
     return
 }
 
@@ -158,28 +178,14 @@ if ($(Get-InstalledModule -Name dbatools -ErrorAction SilentlyContinue).Name -ne
 # import modules - assuming that they must be installed as part of the project prerequisites
 if ($(Get-Module -Name dbatools).Name -ne "dbatools") { Import-Module -Name dbatools }
 
-function Test-FilePath {
-    param(
-        [Parameter(Mandatory)] [string] $Path
-    )
-    if ( $false -eq $(Test-Path -Path $Path -PathType Leaf) ) { 
-        Write-Error $("The required file {0} does not exist." -f $FilePath)
-        return $false
-    }
-    return $true
-}
-
-# get script file location
-$CurrentPath = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand.Definition)
-
-[string] $LoggingFunctionScript = "$($CurrentPath)\functions\Write-Log.ps1"
-[string] $TestNetConnFunctionScript = "$($CurrentPath)\functions\Test-NetworkConnection.ps1"
-[string] $RemoteScriptBlockScript = "$($CurrentPath)\functions\Execute-Remote.ps1"
+[string] $LoggingFunctionScript = "$($RootPath)\functions\Write-Log.ps1"
+[string] $TestNetConnFunctionScript = "$($RootPath)\functions\Test-NetworkConnection.ps1"
+[string] $RemoteScriptBlockScript = "$($RootPath)\functions\Execute-Remote.ps1"
 
 # check for existence of external files used by this script
-if ($false -eq $(Test-FilePath -Path $LoggingFunctionScript)) { return }
-if ($false -eq $(Test-FilePath -Path $TestNetConnFunctionScript)) { return }
-if ($false -eq $(Test-FilePath -Path $RemoteScriptBlockScript)) { return }
+if ($false -eq $(Test-FilePath -FilePath $LoggingFunctionScript)) { return }
+if ($false -eq $(Test-FilePath -FilePath $TestNetConnFunctionScript)) { return }
+if ($false -eq $(Test-FilePath -FilePath $RemoteScriptBlockScript)) { return }
 
 # import function/s
 . $LoggingFunctionScript
@@ -200,7 +206,7 @@ function Get-ServerInfo() {
 
     # --------------------------------------------------------------------------------
     # generic variables
-    [string] $ApplicationName = "SqlMonitor"
+    
     # get the Local Machine name
     [string] $HostName = [System.NET.DNS]::GetHostByName($null).HostName
     <# 
@@ -213,7 +219,7 @@ function Get-ServerInfo() {
     
     # --------------------------------------------------------------------------------
     # variables used for logging
-    [string] $LogFolder = "{0}\LOG" -f $CurrentPath
+    [string] $LogFolder = "{0}\LOG" -f $RootPath
     [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyyyMMddHHmmssfff')
     [string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
     # check and create logging subfolder/s
@@ -223,7 +229,7 @@ function Get-ServerInfo() {
 
     # --------------------------------------------------------------------------------
     #region set variables
-    [string] $ScriptRoot = "{0}\scripts\" -f $CurrentPath
+    [string] $ScriptRoot = "{0}\scripts\" -f $RootPath
     [bool] $IsAlive = $false
     [string] $SqlCmd = ""
     #endregion
@@ -407,7 +413,7 @@ function Get-ServerInfo() {
                     -RemoteSqlInstance $RemoteServerName `
                     -RemoteSqlAuthCredential $SqlAuthCredential `
                     -ScriptsDataSet $ScriptsDataSet `
-                    -LoggingFunctionScript $LoggingFunctionScript `
+                    -RootPath $RootPath `
                     -LogFilePath $LogFilePath
 #>
                 # Runspace code starts here
@@ -422,7 +428,7 @@ function Get-ServerInfo() {
                 $null = $Runspace.AddArgument($RemoteServerName)
                 $null = $Runspace.AddArgument($SqlAuthCredential)
                 $null = $Runspace.AddArgument($ScriptsDataSet)
-                $null = $Runspace.AddArgument($LoggingFunctionScript)
+                $null = $Runspace.AddArgument($RootPath)
                 $null = $Runspace.AddArgument($LogFilePath)
                 $Runspace.RunspacePool = $RunspacePool
                 $Runspaces += [PSCustomObject]@{ Pipe = $Runspace; Status = $Runspace.BeginInvoke() }

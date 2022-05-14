@@ -10,7 +10,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 * [ ] Functionality to load log files into the database (?);
 * [ ] Functionality to clear log files older than N days/weeks/months;
 * [x] Modify deployment scripts to avoid hard-coding the Database Name;
-* [ ] Check and install DBA Tools as part of the deployment (manual installation is always possible for servers not connected to the Internet);
+* [x] Check and install DBA Tools as part of the deployment (manual installation is always possible for servers not connected to the Internet);
 * [x] Merge the Audit/History objects back into the main database, or make it a parameter/choice in the deployment scripts;
 * [x] Split `.\initial_data_set.sql` into multiple files for better manageability;
 * [ ] Write PoSh functions to support and maintain SqlMonitor functionality, e.g.:  
