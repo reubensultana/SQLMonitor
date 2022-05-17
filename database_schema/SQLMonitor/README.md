@@ -1,4 +1,4 @@
-# SQLMonitor Database Schema
+# SqlMonitor Database Schema
 
 The project database schema, including files used for the initial deployment.
 
@@ -20,6 +20,25 @@ The project database schema, including files used for the initial deployment.
 6. Identify a SQL Server instance that will be used to hst the SqlMonitor database/s.
 
 7. Open SQL Server Management Studio, connect to the target Instance and create the SqlMonitor database using the `create_database.sql` script. At this stage you can modify the script according to your standards, or add more files to the default FileGroup.
+
+8. Prior to actually starting the deployment you should review and modify the contents of the `\Data` directory.  This directory contains the following files:
+   * `MonitoredServers.sql`  
+     This contains the SQL Server instances which will be created by default and monitored by the SqlMonitor;
+
+   * `Profile.sql`  
+     Do not change this file since it contains a mapping of when each script will be scheduled to run. You should only use it as a template for additional scripts you might create to extend the functionality of SqlMonitor.
+
+   * `ReportRecipients.sql`  
+     Modify the values in this file according to your organization.
+
+   * `Reports.sql`  
+     This too should be modified with caution as it contains the default set of reports which will be sent out (by email) to the recipients defined in the `ReportRecipients.sql` file.
+
+   * `ReportSubscriptions.sql`  
+     This is where the mapping between a Report Recipient and a Report is made.  A number of default values are provided for you.
+
+   * `SystemParams.sql`  
+    Do not change this file unless you review the contents and understand what each value is being used for.  The parameters listed here determine how often data archiving will be performed, the data retention policies, and the SQL Server build numbers - these you will have to update yourself, as and when the build numbers change. As a reference I use the *unofficial* [Microsoft SQL Server Versions List](https://www.sqlserverversions.com/). You can also use the [dbatools Build Reference](https://dataplat.github.io/builds), which is also an unofficial source and is based on the one from sqlserverversions.com. Hopefully Microsoft will release an official source in the not-too-distant future.  A CSV extract of the builds is being included in this folder (`SqlServerBuilds.csv`), however this information might be obsolete at the time of reading.
 
 &nbsp;
 
