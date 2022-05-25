@@ -160,7 +160,7 @@ param(
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $MonitorTargetSchema = "Monitor"
-        ,
+    ,
     [Parameter(
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
@@ -179,7 +179,8 @@ param(
         [System.Data.DataTable] $ScriptsDataSet
     ,
     [Parameter(
-            Mandatory=$true)] 
+            Mandatory=$true,
+            ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $RootPath
     ,
