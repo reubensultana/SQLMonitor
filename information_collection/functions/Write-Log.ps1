@@ -35,8 +35,7 @@ function Write-Log {
     )
     try {
         [IO.StreamWriter] $fileWriter = $null
-
-        $LogEntry = "$(Get-Date -AsUTC -Format 'yyyy-MM-ddTHH:mm:ss:fffffff K') : $LogEntry"
+        $LogEntry = "$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss:fffffff K')) : $LogEntry"
         # $LogEntry | Out-File -FilePath $LogFilePath -Append
         $fileWriter = [IO.File]::AppendText("{0}" -f ($LogFilePath))
         $fileWriter.WriteLine($LogEntry);

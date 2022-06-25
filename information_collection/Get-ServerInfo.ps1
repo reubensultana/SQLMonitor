@@ -131,7 +131,7 @@ param(
             ParameterSetName = 'Monitor',
             HelpMessage="Enter the SQLMonitor Profile Type.")]
         [ValidateNotNullOrEmpty()]
-        [ValidateSet("Annual", ”Monthly”, ”Weekly”, "Daily", "Hourly", "Minute", "Manual")]
+        [ValidateSet("Annual", "Monthly", "Weekly", "Daily", "Hourly", "Minute", "Manual")]
         [string] $MonitorProfileType
     ,
     [Parameter(
@@ -220,7 +220,7 @@ function Get-ServerInfo() {
     # --------------------------------------------------------------------------------
     # variables used for logging
     [string] $LogFolder = "{0}\LOG" -f $RootPath
-    [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $(Get-Date -Format 'yyyyMMddHHmmssfff')
+    [string] $LogFileName = "{0}_{1}" -f $ApplicationName, $((Get-Date).ToUniversalTime().ToString('yyyyMMddHHmmssfff'))
     [string] $LogFilePath = "{0}\{1}.log" -f $LogFolder, $LogFileName
     # check and create logging subfolder/s
     if ($false -eq $(Test-Path -Path $LogFolder -PathType Container -ErrorAction SilentlyContinue)) {

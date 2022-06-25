@@ -51,7 +51,7 @@ A collection of items, thoughts and suggestions that I have for this project. Fe
 * [ ] Write documentation for this project;
 * [ ] Provide inline documentation (i.e. within the Project folder structure) as Markdown files;
 * [ ] Evaluate [Read the Docs](https://readthedocs.org/) - this might have to be it's own project;
-* [ ] Important: Emphasize that all dates are stored in UTC timezone;
+* [ ] Important: Emphasize that all dates are stored in UTC time zone;
 
 ## Reporting
 
