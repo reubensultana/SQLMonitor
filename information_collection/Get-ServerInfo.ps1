@@ -353,9 +353,15 @@ function Get-ServerInfo() {
             # check TCP connection on the specified port and stop execution on failure
             $IsAlive = Test-Port -HostName $ServerName -Port $TcpPort
             # test using ServerAlias and update the ServerName property if the test was successful
-            if ($false -eq $IsAlive) { $IsAlive = Test-Port -HostName $ServerAlias -Port $TcpPort } else { $Instance.ServerName = $ServerAlias }
+            if ($false -eq $IsAlive) { 
+                $IsAlive = Test-Port -HostName $ServerAlias -Port $TcpPort 
+                if ($true -eq $IsAlive) { $Instance.ServerName = $ServerAlias }
+            }
             # test using ServerIpAddress and update the ServerName property if the test was successful
-            if ($false -eq $IsAlive) { $IsAlive = Test-Port -HostName $ServerIpAddress -Port $TcpPort } else { $Instance.ServerName = $ServerIpAddress }
+            if ($false -eq $IsAlive) { 
+                $IsAlive = Test-Port -HostName $ServerIpAddress -Port $TcpPort
+                if ($true -eq $IsAlive) { $Instance.ServerName = $ServerIpAddress }
+            }
             # add to the array
             if ($true -eq $IsAlive) {
                 $Instance.isAlive = 1
@@ -399,9 +405,12 @@ function Get-ServerInfo() {
         foreach ($MonitoredInstance in $AvailableInstancesDataSet) {
             try {
                 $RemoteServerName = $("{0},{1}" -f $MonitoredInstance.ServerName, $MonitoredInstance.SqlTcpPort)
-                [String] $SqlLoginName = $MonitoredInstance.SqlLoginName
-                [SecureString] $SqlLoginSecret = ConvertTo-SecureString $($MonitoredInstance.SqlLoginSecret) -AsPlainText -Force
-                $SqlAuthCredential = New-Object System.Management.Automation.PSCredential ($SqlLoginName, $SqlLoginSecret)
+                if ($false -eq ([string]::IsNullOrEmpty($ExecuteScript))) { 
+                    [String] $SqlLoginName = $MonitoredInstance.SqlLoginName
+                    [SecureString] $SqlLoginSecret = ConvertTo-SecureString $($MonitoredInstance.SqlLoginSecret) -AsPlainText -Force
+                    $SqlAuthCredential = New-Object System.Management.Automation.PSCredential ($SqlLoginName, $SqlLoginSecret)
+                }
+                else {$SqlAuthCredential = $null}
 
                 Write-Log -LogFilePath $LogFilePath -LogEntry $("Processing instance: {0}" -f $RemoteServerName)
 <#

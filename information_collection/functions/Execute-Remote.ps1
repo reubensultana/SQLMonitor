@@ -74,8 +74,6 @@
 
     $RootPath = $(Get-Location).Path
 
-    [string] $LoggingFunctionScript = "$($RootPath)\functions\Write-Log.ps1"
-
     [string] $ApplicationName = "SqlMonitor"
     [string] $HostName = [System.NET.DNS]::GetHostByName($null).HostName
 
@@ -127,14 +125,14 @@
         }
     }
 
-    $ScriptRoot\Execute-Remote.ps1 `
+    .\Execute-Remote.ps1 `
         -MonitorSqlConnection $MonitorSqlConnection `
         -MonitorDatabaseName $MonitorDatabaseName `
         -MonitorTargetSchema $MonitorProfile `
         -RemoteSqlInstance "localhost,14332" `
         -RemoteSqlAuthCredential $MonitorSqlAuthCredential `
         -ScriptsDataSet $ScriptsDataSet `
-        -LoggingFunctionScript $LoggingFunctionScript `
+        -RootPath $RootPath `
         -LogFilePath $LogFilePath `
         -Verbose
 
@@ -144,47 +142,55 @@
 [CmdletBinding(DefaultParameterSetName = 'RemoteExecute')]
 param(
     [Parameter(
+            Position=0,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [Microsoft.SqlServer.Management.Smo.Server] $MonitorSqlConnection
     ,
     [Parameter(
+            Position=1,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $MonitorDatabaseName
     ,
     [Parameter(
+            Position=2,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $MonitorTargetSchema = "Monitor"
     ,
     [Parameter(
+            Position=3,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $RemoteSqlInstance
     ,
     [Parameter(
+            Position=4,
             Mandatory=$false,
             ParameterSetName = 'RemoteExecute')] 
         [PSCredential] $RemoteSqlAuthCredential
     ,
     [Parameter(
+            Position=5,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [System.Data.DataTable] $ScriptsDataSet
     ,
     [Parameter(
+            Position=6,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
         [string] $RootPath
     ,
     [Parameter(
+            Position=7,
             Mandatory=$true,
             ParameterSetName = 'RemoteExecute')] 
         [ValidateNotNullOrEmpty()] 
@@ -416,7 +422,7 @@ IF EXISTS (SELECT 1 FROM [{0}].[{1}] WHERE [ServerName] = @ServerName AND [Recor
     Write-Log -LogFilePath $LogFilePath -LogEntry $("{0} : All scripts processed. Review output for any errors." -f $RemoteSqlInstance)
     # free up memory
     # https://docs.dbatools.io/Disconnect-DbaInstance
-    Disconnect-DbaInstance -SqlInstance $RemoteSqlInstance
+    $RemoteSqlInstance | Disconnect-DbaInstance
 } # end check
 
 # return
