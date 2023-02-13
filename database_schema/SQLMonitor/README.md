@@ -203,6 +203,26 @@ The `[dbo].[Profile]` table has the following attributes, however not all are ma
 
 ## System Parameters
 
+The System Parameters are stored in the `[dbo].[SystemParams]` table and control various functions of the SqlMonitor solution, as detailed below:
+
+- Archive_Days_*  
+  The number of days elapsed from the collection date when a record in the respective table is moved to the Archive table.
+
+- Delete_Days_*  
+  The number of days elapsed from the collection date when a record in the respective table is deleted from the database.
+
+- Archive_BatchCount and Delete_BatchCount  
+  The size, or number of rows, in each batch when processing records by the Archiving or Deletion processes
+
+- SQLServer_BuildVersion_*  
+  The latest supported build number for the respective SQL Server version.  This information is used to compare build numbers and identify which Instances require patching.
+  Build numbers can be obtained from the [Microsoft website](https://learn.microsoft.com/en-us/troubleshoot/sql/releases/download-and-install-latest-updates), the unofficial [Microsoft SQL Server Versions List](https://www.sqlserverversions.com/), as described in my [Get-SqlServerVersions.ps1 script](https://github.com/reubensultana/DBAScripts/blob/master/PowerShell/Get-SqlServerVersions.ps1), or any other method you might adopt.
+
+- SchemaName_Staging  
+  The name of the Staging Schema.
+
+Default values for all of the above can be reviewed in the `database_schema\SQLMonitor\Data\SystemParams.sql` script file.
+
 &nbsp;
 
 ## Notes and Q&A
